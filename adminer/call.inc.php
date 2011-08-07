@@ -42,7 +42,7 @@ if (!$error && $_POST) {
 			if (is_object($result)) {
 				select($result, $connection2);
 			} else {
-				echo "<p class='message'>" . lang('Routine has been called, %d row(s) affected.', $connection->affected_rows) . "\n";
+				echo "<p class='message success'>" . lang('Routine has been called, %d row(s) affected.', $connection->affected_rows) . "\n";
 			}
 		} while ($connection->next_result());
 		if ($out) {

@@ -136,7 +136,7 @@ if (!$error && $_POST) {
 									session_write_close();
 								}
 								if (!$_POST["only_errors"]) {
-									echo "<p class='message' title='" . h($connection->info) . "'>" . lang('Query executed OK, %d row(s) affected.', $connection->affected_rows) . "$time\n";
+									echo "<p class='message success' title='" . h($connection->info) . "'>" . lang('Query executed OK, %d row(s) affected.', $connection->affected_rows) . "$time\n";
 								}
 							}
 							$start = $end;
@@ -148,11 +148,11 @@ if (!$error && $_POST) {
 			}
 		}
 		if ($empty) {
-			echo "<p class='message'>" . lang('No commands to execute.') . "\n";
+			echo "<p class='message info'>" . lang('No commands to execute.') . "\n";
 		} elseif ($_POST["only_errors"]) {
-			echo "<p class='message'>" . lang('%d query(s) executed OK.', $commands - count($errors)) . format_time($total_start, microtime()) . "\n";
+			echo "<p class='message success'>" . lang('%d query(s) executed OK.', $commands - count($errors)) . format_time($total_start, microtime()) . "\n";
 		} elseif ($errors && $commands > 1) {
-			echo "<p class='error'>" . lang('Error in query') . ": " . implode("", $errors) . "\n";
+			echo "<p class='message error'>" . lang('Error in query') . ": " . implode("", $errors) . "\n";
 		}
 		//! MS SQL - SET SHOWPLAN_ALL OFF
 	} else {
@@ -179,7 +179,7 @@ echo "<p>" . (ini_bool("file_uploads")
 );
 
 ?>
-<p>
+<p class="submit-bar">
 <input type="submit" value="<?php echo lang('Execute'); ?>" title="Ctrl+Enter">
 <input type="hidden" name="token" value="<?php echo $token; ?>">
 <?php

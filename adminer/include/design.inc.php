@@ -25,7 +25,7 @@ function page_header($title, $error = "", $breadcrumb = array(), $title2 = "") {
 <meta http-equiv="Content-Script-Type" content="text/javascript">
 <meta name="robots" content="noindex">
 <title><?php echo $title_page; ?></title>
-<link rel="stylesheet" type="text/css" href="../adminer/static/default.css">
+
 <script type="text/javascript">
 var areYouSure = '<?php echo lang('Resend POST data?'); ?>';
 </script>
@@ -33,39 +33,47 @@ var areYouSure = '<?php echo lang('Resend POST data?'); ?>';
 <script type="text/javascript" src="static/editing.js"></script>
 <?php if ($adminer->head()) { ?>
 <link rel="shortcut icon" type="image/x-icon" href="../adminer/static/favicon.ico" id="favicon">
-<?php if (file_exists("adminer.css")) { ?>
+	<?php if (file_exists("adminer.css")) { ?>
 <link rel="stylesheet" type="text/css" href="adminer.css">
+	<?php } else { ?>
+<link rel="stylesheet" type="text/css" href="../adminer/static/default.css">
+	<?php } ?>
+	
+	<?php if (file_exists("adminer.js")) { ?>
+<script type="text/javascript" src="adminer.js"></script>
+	<?php } ?>
+	
 <?php } ?>
-<?php } ?>
-
 <body class="<?php echo lang('ltr'); ?> nojs"<?php echo ($_POST ? "" : " onclick=\"return bodyClick(event, '" . h(js_escape(DB) . "', '" . js_escape($_GET["ns"])) . "');\""); // avoid re-post confirmation after refreshing the next page in Google Chrome ?> onkeydown="bodyKeydown(event);" onload="bodyLoad('<?php echo (is_object($connection) ? substr($connection->server_info, 0, 3) : ""); ?>');<?php echo (isset($_COOKIE["adminer_version"]) ? "" : " verifyVersion();"); ?>">
 <script type="text/javascript">
 document.body.className = document.body.className.replace(/(^|\s)nojs(\s|$)/, '$1js$2');
 </script>
+
+<div id="container">
 
 <div id="content">
 <?php
 	}
 	if (isset($breadcrumb)) {
 		$link = substr(preg_replace('~(username|db|ns)=[^&]*&~', '', ME), 0, -1);
-		echo '<p id="breadcrumb"><a href="' . h($link ? $link : ".") . '">' . $drivers[DRIVER] . '</a> &raquo; ';
+		echo '<p id="breadcrumb"><a href="' . ($link ? h($link) : ".") . '" class="driver">' . $drivers[DRIVER] . '</a> <span class="sep">&raquo;</span> ';
 		$link = substr(preg_replace('~(db|ns)=[^&]*&~', '', ME), 0, -1);
 		$server = (SERVER != "" ? h(SERVER) : lang('Server'));
 		if ($breadcrumb === false) {
-			echo "$server\n";
+			echo "<span class='server'>$server</span>\n";
 		} else {
-			echo "<a href='" . ($link ? h($link) : ".") . "' accesskey='1' title='Alt+Shift+1'>$server</a> &raquo; ";
+			echo "<a href='" . ($link ? h($link) : ".") . "' class='server' accesskey='1' title='Alt+Shift+1'>$server</a> <span class='sep'>&raquo;</span> ";
 			if ($_GET["ns"] != "" || (DB != "" && is_array($breadcrumb))) {
-				echo '<a href="' . h($link . "&db=" . urlencode(DB) . (support("scheme") ? "&ns=" : "")) . '">' . h(DB) . '</a> &raquo; ';
+				echo '<a href="' . h($link . "&db=" . urlencode(DB) . (support("scheme") ? "&ns=" : "")) . '">' . h(DB) . '</a> <span class="sep">&raquo;</span> ';
 			}
 			if (is_array($breadcrumb)) {
 				if ($_GET["ns"] != "") {
-					echo '<a href="' . h(substr(ME, 0, -1)) . '">' . h($_GET["ns"]) . '</a> &raquo; ';
+					echo '<a href="' . h(substr(ME, 0, -1)) . '">' . h($_GET["ns"]) . '</a> <span class="sep">&raquo;</span> ';
 				}
 				foreach ($breadcrumb as $key => $val) {
 					$desc = (is_array($val) ? $val[1] : $val);
 					if ($desc != "") {
-						echo '<a href="' . h(ME . "$key=") . urlencode(is_array($val) ? $val[0] : $val) . '">' . h($desc) . '</a> &raquo; ';
+						echo '<a href="' . h(ME . "$key=") . urlencode(is_array($val) ? $val[0] : $val) . '">' . h($desc) . '</a> <span class="sep">&raquo;</span> ';
 					}
 				}
 			}
@@ -78,7 +86,7 @@ document.body.className = document.body.className.replace(/(^|\s)nojs(\s|$)/, '$
 	$uri = preg_replace('~^[^?]*~', '', $_SERVER["REQUEST_URI"]);
 	$messages = $_SESSION["messages"][$uri];
 	if ($messages) {
-		echo "<div class='message'>" . implode("</div>\n<div class='message'>", $messages) . "</div>\n";
+		echo "<div class='message warning'>" . implode("</div>\n<div class='message warning'>", $messages) . "</div>\n";
 		unset($_SESSION["messages"][$uri]);
 	}
 	$databases = &get_session("dbs");
@@ -105,6 +113,10 @@ function page_footer($missing = "") {
 <div id="menu">
 <?php $adminer->navigation($missing); ?>
 </div>
+
+</div><!-- /container -->
+</body>
+</html>
 <?php
 	}
 }

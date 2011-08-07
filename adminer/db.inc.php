@@ -41,7 +41,7 @@ if ($adminer->homepage()) {
 		echo "<h3>" . lang('Tables and views') . "</h3>\n";
 		$tables_list = tables_list();
 		if (!$tables_list) {
-			echo "<p class='message'>" . lang('No tables.') . "\n";
+			echo "<p class='message info'>" . lang('No tables.') . "\n";
 		} else {
 			echo "<form action='' method='post'>\n";
 			echo "<p>" . lang('Search data in tables') . ": <input name='query' value='" . h($_POST["query"]) . "'> <input type='submit' name='search' value='" . lang('Search') . "'>\n";
@@ -87,7 +87,7 @@ if ($adminer->homepage()) {
 			echo "</form>\n";
 		}
 		
-		echo '<p><a href="' . h(ME) . 'create=">' . lang('Create table') . "</a>\n";
+		echo '<p class="nav"><a href="' . h(ME) . 'create=">' . lang('Create table') . "</a>\n";
 		if (support("view")) {
 			echo '<a href="' . h(ME) . 'view=">' . lang('Create view') . "</a>\n";
 		}
@@ -108,7 +108,7 @@ if ($adminer->homepage()) {
 				}
 				echo "</table>\n";
 			}
-			echo '<p>' . (support("procedure") ? '<a href="' . h(ME) . 'procedure=">' . lang('Create procedure') . '</a> ' : '') . '<a href="' . h(ME) . 'function=">' . lang('Create function') . "</a>\n";
+			echo '<p class="nav">' . (support("procedure") ? '<a href="' . h(ME) . 'procedure=">' . lang('Create procedure') . '</a> ' : '') . '<a href="' . h(ME) . 'function=">' . lang('Create function') . "</a>\n";
 		}
 		
 		if (support("sequence")) {

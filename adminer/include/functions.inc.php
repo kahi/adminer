@@ -155,8 +155,8 @@ function confirm($count = "", $stop = false) {
 * @param string
 * @return null
 */
-function print_fieldset($id, $legend, $visible = false, $onclick = "") {
-	echo "<fieldset><legend><a href='#fieldset-$id' onclick=\"" . h($onclick) . "return !toggle('fieldset-$id');\">$legend</a></legend><div id='fieldset-$id'" . ($visible ? "" : " class='hidden'") . ">\n";
+function print_fieldset($id, $legend, $visible = false, $onclick = "", $class = "") {
+	echo "<fieldset". ($class ? " class='$class'" : "") ."><legend><a href='#fieldset-$id' onclick=\"" . h($onclick) . "return !toggle('fieldset-$id');\">$legend</a></legend><div id='fieldset-$id'" . ($visible ? "" : " class='hidden'") . ">\n";
 }
 
 /** Return class='active' if $bold is true
@@ -165,6 +165,14 @@ function print_fieldset($id, $legend, $visible = false, $onclick = "") {
 */
 function bold($bold) {
 	return ($bold ? " class='active'" : "");
+}
+
+/** Return "active" if $bold is true
+* @param bool
+* @return string
+*/
+function bold_class($bold) {
+	return ($bold ? " active" : "");
 }
 
 /** Generate class for odd rows
@@ -530,7 +538,7 @@ function remove_from_uri($param = "") {
 * @return string
 */
 function pagination($page, $current) {
-	return " " . ($page == $current ? $page + 1 : '<a href="' . h(remove_from_uri("page") . ($page ? "&page=$page" : "")) . '">' . ($page + 1) . "</a>");
+	return " " . ($page == $current ? '<span class="current">'.($page + 1).'</span>' : '<a href="' . h(remove_from_uri("page") . ($page ? "&page=$page" : "")) . '">' . ($page + 1) . "</a>");
 }
 
 /** Get file contents from $_FILES
@@ -783,7 +791,7 @@ function search_tables() {
 			}
 		}
 	}
-	echo ($found ? "</ul>" : "<p class='message'>" . lang('No tables.')) . "\n";
+	echo ($found ? "</ul>" : "<p class='message info'>" . lang('No tables.')) . "\n";
 }
 
 /** Send headers for export

@@ -10,7 +10,7 @@ function connect_error() {
 		}
 		
 		page_header(lang('Select database'), $error, false);
-		echo "<p><a href='" . h(ME) . "database='>" . lang('Create new database') . "</a>\n";
+		echo "<p class='nav'><a href='" . h(ME) . "database='>" . lang('Create new database') . "</a>\n";
 		foreach (array(
 			'privileges' => lang('Privileges'),
 			'processlist' => lang('Process list'),

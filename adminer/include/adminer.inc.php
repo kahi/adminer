@@ -102,7 +102,7 @@ username.form['driver'].onchange();
 	* @return null
 	*/
 	function selectLinks($tableStatus, $set = "") {
-		echo '<p class="tabs">';
+		echo '<p class="tabs nav">';
 		$links = array("select" => lang('Select data'), "table" => lang('Show structure'));
 		if (is_view($tableStatus)) {
 			$links["view"] = lang('Alter view');
@@ -113,7 +113,7 @@ username.form['driver'].onchange();
 			$links["edit"] = lang('New item');
 		}
 		foreach ($links as $key => $val) {
-			echo " <a href='" . h(ME) . "$key=" . urlencode($tableStatus["Name"]) . ($key == "edit" ? $set : "") . "'" . bold(isset($_GET[$key])) . ">$val</a>";
+			echo " <a href='" . h(ME) . "$key=" . urlencode($tableStatus["Name"]) . ($key == "edit" ? $set : "") . "' class='$key".bold_class(isset($_GET[$key]))."'>$val</a>";
 		}
 		echo "\n";
 	}
@@ -149,7 +149,7 @@ username.form['driver'].onchange();
 	*/
 	function selectQuery($query) {
 		global $jush;
-		return "<p><a href='" . h(remove_from_uri("page")) . "&amp;page=last' title='" . lang('Last page') . "'>&gt;&gt;</a> <code class='jush-$jush'>" . h(str_replace("\n", " ", $query)) . "</code> <a href='" . h(ME) . "sql=" . urlencode($query) . "'>" . lang('Edit') . "</a></p>\n"; // </p> - required for IE9 inline edit
+		return "<p class='code'><a href='" . h(remove_from_uri("page")) . "&amp;page=last' title='" . lang('Last page') . "'>&gt;&gt;</a> <code class='jush-$jush'>" . h(str_replace("\n", " ", $query)) . "</code> <a href='" . h(ME) . "sql=" . urlencode($query) . "'>" . lang('Edit') . "</a></p>\n"; // </p> - required for IE9 inline edit
 	}
 	
 	/** Description of a row in a table
@@ -199,7 +199,7 @@ username.form['driver'].onchange();
 	*/
 	function selectColumnsPrint($select, $columns) {
 		global $functions, $grouping;
-		print_fieldset("select", lang('Select'), $select);
+		print_fieldset("select", lang('Select'), $select, false, 'columns');
 		$i = 0;
 		$fun_group = array(lang('Functions') => $functions, lang('Aggregation') => $grouping);
 		foreach ($select as $key => $val) {
@@ -220,7 +220,7 @@ username.form['driver'].onchange();
 	* @return null
 	*/
 	function selectSearchPrint($where, $columns, $indexes) {
-		print_fieldset("search", lang('Search'), $where);
+		print_fieldset("search", lang('Search'), $where, false, 'search');
 		foreach ($indexes as $i => $index) {
 			if ($index["type"] == "FULLTEXT") {
 				echo "(<i>" . implode("</i>, <i>", array_map('h', $index["columns"])) . "</i>) AGAINST";
@@ -251,7 +251,7 @@ username.form['driver'].onchange();
 	* @return null
 	*/
 	function selectOrderPrint($order, $columns, $indexes) {
-		print_fieldset("sort", lang('Sort'), $order);
+		print_fieldset("sort", lang('Sort'), $order, false, 'order');
 		$i = 0;
 		foreach ((array) $_GET["order"] as $key => $val) {
 			if (isset($columns[$val])) {
@@ -270,7 +270,7 @@ username.form['driver'].onchange();
 	* @return null
 	*/
 	function selectLimitPrint($limit) {
-		echo "<fieldset><legend>" . lang('Limit') . "</legend><div>"; // <div> for easy styling
+		echo "<fieldset class='limit'><legend>" . lang('Limit') . "</legend><div>"; // <div> for easy styling
 		echo "<input name='limit' size='3' value='" . h($limit) . "'>";
 		echo "</div></fieldset>\n";
 	}
@@ -281,7 +281,7 @@ username.form['driver'].onchange();
 	*/
 	function selectLengthPrint($text_length) {
 		if (isset($text_length)) {
-			echo "<fieldset><legend>" . lang('Text length') . "</legend><div>";
+			echo "<fieldset class='length'><legend>" . lang('Text length') . "</legend><div>";
 			echo '<input name="text_length" size="3" value="' . h($text_length) . '">';
 			echo "</div></fieldset>\n";
 		}
@@ -291,7 +291,7 @@ username.form['driver'].onchange();
 	* @return null
 	*/
 	function selectActionPrint() {
-		echo "<fieldset><legend>" . lang('Action') . "</legend><div>";
+		echo "<fieldset class='action'><legend>" . lang('Action') . "</legend><div>";
 		echo "<input type='submit' value='" . lang('Select') . "'>";
 		echo "</div></fieldset>\n";
 	}
@@ -718,10 +718,13 @@ DROP PROCEDURE adminer_alter;
 	* @return bool whether to print default homepage
 	*/
 	function homepage() {
-		echo '<p>' . ($_GET["ns"] == "" ? '<a href="' . h(ME) . 'database=">' . lang('Alter database') . "</a>\n" : "");
+		echo '<p class="nav">';
+		// @todo add link 'Browse database', probably active.
+		echo ($_GET["ns"] == "" ? '<a href="' . h(ME) . 'database=">' . lang('Alter database') . "</a>\n" : "");
 		echo (support("scheme") ? "<a href='" . h(ME) . "scheme='>" . ($_GET["ns"] != "" ? lang('Alter schema') : lang('Create schema')) . "</a>\n" : "");
 		echo ($_GET["ns"] !== "" ? '<a href="' . h(ME) . 'schema=">' . lang('Database schema') . "</a>\n" : "");
 		echo (support("privileges") ? "<a href='" . h(ME) . "privileges='>" . lang('Privileges') . "</a>\n" : "");
+		echo '</p>';
 		return true;
 	}
 	
@@ -759,7 +762,7 @@ DROP PROCEDURE adminer_alter;
 <p class="logout">
 <?php
 			if (DB == "" || !$missing) {
-				echo "<a href='" . h(ME) . "sql='" . bold(isset($_GET["sql"])) . ">" . lang('SQL command') . "</a>\n";
+				echo "<a href='" . h(ME) . "sql=' id='command'" . bold(isset($_GET["sql"])) . ">" . lang('SQL command') . "</a>\n";
 				if (support("dump")) {
 					echo "<a href='" . h(ME) . "dump=" . urlencode(isset($_GET["table"]) ? $_GET["table"] : $_GET["select"]) . "' id='dump'" . bold(isset($_GET["dump"])) . ">" . lang('Dump') . "</a>\n";
 				}
@@ -769,11 +772,15 @@ DROP PROCEDURE adminer_alter;
 <input type="hidden" name="token" value="<?php echo $token; ?>">
 </p>
 </form>
-<form action="">
+
+<form action="" class="db">
 <p>
 <?php hidden_fields_get(); ?>
 <?php echo ($databases ? html_select("db", array("" => "(" . lang('database') . ")") + $databases, DB, "this.form.submit();") : '<input name="db" value="' . h(DB) . '">'); ?>
 <input type="submit" value="<?php echo lang('Use'); ?>"<?php echo ($databases ? " class='hidden'" : ""); ?> onclick="eventStop(event);">
+</p>
+</form>
+
 <?php
 			if ($missing != "db" && DB != "" && $connection->select_db(DB)) {
 				if (support("scheme")) {
@@ -783,10 +790,11 @@ DROP PROCEDURE adminer_alter;
 					}
 				}
 				if ($_GET["ns"] !== "" && !$missing) {
-					echo '<p><a href="' . h(ME) . 'create="' . bold($_GET["create"] === "") . ">" . lang('Create new table') . "</a>\n";
+					echo '<div class="add-table"><a href="' . h(ME) . 'create="' . bold($_GET["create"] === "") . ">" . lang('Create new table') . "</a></div>
+					<p>\n";
 					$tables = tables_list();
 					if (!$tables) {
-						echo "<p class='message'>" . lang('No tables.') . "\n";
+						echo "<p class='message info'>" . lang('No tables.') . "</p>\n";
 					} else {
 						$this->tablesPrint($tables);
 						$links = array();
@@ -806,7 +814,7 @@ DROP PROCEDURE adminer_alter;
 				: (isset($_GET["schema"]) ? '<input type="hidden" name="schema" value="">'
 				: (isset($_GET["dump"]) ? '<input type="hidden" name="dump" value="">'
 			: "")));
-			echo "</p></form>\n";
+			echo "\n";
 		}
 	}
 	
@@ -815,11 +823,12 @@ DROP PROCEDURE adminer_alter;
 	* @return null
 	*/
 	function tablesPrint($tables) {
-		echo "<p id='tables'>\n";
+		echo "<ul id='tables'>\n";
 		foreach ($tables as $table => $type) {
-			echo '<a href="' . h(ME) . 'select=' . urlencode($table) . '"' . bold($_GET["select"] == $table) . ">" . lang('select') . "</a> ";
-			echo '<a href="' . h(ME) . 'table=' . urlencode($table) . '"' . bold($_GET["table"] == $table) . ">" . $this->tableName(array("Name" => $table)) . "</a><br>\n"; //! Adminer::tableName may work with full table status
+			echo '<li'. bold($_GET["table"] == $table || $_GET["select"] == $table).'><a href="' . h(ME) . 'select=' . urlencode($table) . '" class="d' . bold_class($_GET["select"] == $table) . '">' . $this->tableName(array("Name" => $table)) . "</a> "; // removed: lang('select')
+			echo '<a href="' . h(ME) . 'table=' . urlencode($table) . '" class="s' . bold_class($_GET["table"] == $table). '">' . $this->tableName(array("Name" => $table)) . "</a></li>\n"; //! Adminer::tableName may work with full table status
 		}
+		echo "</ul>\n";
 	}
 	
 }

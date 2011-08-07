@@ -78,7 +78,7 @@ function select($result, $connection2 = null, $href = "") {
 			echo "<td>$val";
 		}
 	}
-	echo ($i ? "</table>" : "<p class='message'>" . lang('No rows.')) . "\n";
+	echo ($i ? "</table>" : "<p class='message info'>" . lang('No rows.')) . "\n";
 }
 
 /** Get referencable tables with single column primary key except self

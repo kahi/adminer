@@ -1,5 +1,6 @@
 <?php
 $TABLE = $_GET["edit"];
+$table_status = table_status($TABLE);
 $where = (isset($_GET["select"]) ? (count($_POST["check"]) == 1 ? where_check($_POST["check"][0]) : "") : where($_GET));
 $update = (isset($_GET["select"]) ? $_POST["edit"] : $where);
 $fields = fields($TABLE);
@@ -45,6 +46,8 @@ page_header(
 	array("select" => array($TABLE, $table_name)),
 	$table_name //! two calls of h()
 );
+
+$adminer->selectLinks($table_status, ''); // @todo are params OK?
 
 $row = null;
 if ($_POST["save"]) {

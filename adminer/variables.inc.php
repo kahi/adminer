@@ -4,7 +4,7 @@ page_header($status ? lang('Status') : lang('Variables'));
 
 $variables = ($status ? show_status() : show_variables());
 if (!$variables) {
-	echo "<p class='message'>" . lang('No rows.') . "\n";
+	echo "<p class='message info'>" . lang('No rows.') . "\n";
 } else {
 	echo "<table cellspacing='0'>\n";
 	foreach ($variables as $key => $val) {

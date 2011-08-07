@@ -323,9 +323,15 @@ function ajaxSend(url, data, popState, noscroll) {
 				}
 				
 				var as = document.getElementById('menu').getElementsByTagName('a');
-				var href = location.href.replace(/(&(sql=|dump=|(select|table)=[^&]*)).*/, '$1');
+				var href = location.href.replace(/ /g, '%20').replace(/(&(sql=|dump=|(select|table)=[^&]*)).*/, '$1');
 				for (var i=0; i < as.length; i++) {
-					as[i].className = (href == as[i].href ? 'active' : '');
+					if (href == as[i].href) {
+						if (typeof $ != 'undefined') {$(as[i]).addClass('active'); if ($(as[i]).is('#tables *')) $(as[i]).closest('li').addClass('active');}
+						else as[i].className += ' active';
+					} else {
+						if (typeof $ != 'undefined') {$(as[i]).removeClass('active'); if ($(as[i]).is('#tables *') && $(as[i]).is('.s') && !$(as[i]).prev('a').is('.active')) $(as[i]).closest('li').removeClass('active');}
+						else as[i].className.replace(/ active/g, '');
+					}
 				}
 				var dump = document.getElementById('dump');
 				if (dump) {

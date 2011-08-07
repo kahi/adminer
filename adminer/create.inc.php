@@ -1,5 +1,6 @@
 <?php
 $TABLE = $_GET["create"];
+$table_status = table_status($TABLE);
 $partition_by = array('HASH', 'LINEAR HASH', 'KEY', 'LINEAR KEY', 'RANGE', 'LIST');
 
 $referencable_primary = referencable_primary($TABLE);
@@ -93,6 +94,8 @@ if ($_POST && !$error && !$_POST["add"] && !$_POST["drop_col"] && !$_POST["up"] 
 }
 
 page_header(($TABLE != "" ? lang('Alter table') : lang('Create table')), $error, array("table" => $TABLE), $TABLE);
+
+if ($TABLE) $adminer->selectLinks($table_status); // @todo maybe fix 2. param.
 
 $row = array(
 	"Engine" => $_COOKIE["adminer_engine"],
