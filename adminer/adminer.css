@@ -57,7 +57,7 @@ input, select, textarea {font-size: inherit;}
 	-moz-box-shadow:    0 0 25px rgba(0,0,0, 0.20);
 	-webkit-box-shadow: 0 0 25px rgba(0,0,0, 0.20);
 	box-shadow:         0 0 25px rgba(0,0,0, 0.20);
-	background: url(images/blue.gif) no-repeat;
+	background: url(adminer-plus/images/blue.gif) no-repeat;
 	background-size: 25% 100% ;
 }
 
@@ -137,7 +137,7 @@ input, select, textarea {font-size: inherit;}
 .switch span {
 	float: left;
 	padding: 4px 7px;
-	background: #dadada url(images/grad-switch.png) repeat-x;
+	background: #dadada url(adminer-plus/images/grad-switch.png) repeat-x;
 	line-height: 1;
 }
 
@@ -199,7 +199,7 @@ p.code a[href*="sql="] {
 	-moz-border-radius:    6px 6px 0 0; 
 	-webkit-border-radius: 6px 6px 0 0; 
 	border-radius:         6px 6px 0 0; 
-	background: #bbb url(images/header.png) repeat-x;
+	background: #bbb url(adminer-plus/images/header.png) repeat-x;
 }
 
 /* Logout button */
@@ -209,7 +209,7 @@ p.code a[href*="sql="] {
 	position: absolute; left: 8px; top: 4px;
 	width: 16px; height: 15px;
 	text-indent: -9999px; overflow: hidden;
-	background: url(images/red-btn.png) no-repeat;
+	background: url(adminer-plus/images/red-btn.png) no-repeat;
 	cursor: pointer;
 }
 
@@ -242,7 +242,7 @@ h1 {
 #menu .logout a#command {
 	position: absolute; left: 16px; top: 30px;
 	width: 30px; height: 25px;
-	background: url(images/icon-terminal.png) no-repeat;
+	background: url(adminer-plus/images/icon-terminal.png) no-repeat;
 	text-indent: -9999px; overflow: hidden;
 }
 
@@ -251,7 +251,7 @@ h1 {
 #menu .logout a#dump {
 	position: absolute; right: 16px; top: 30px;
 	width: 30px; height: 25px;
-	background: url(images/icon-down.png) center center no-repeat;
+	background: url(adminer-plus/images/icon-down.png) center center no-repeat;
 	text-indent: -9999px; overflow: hidden;
 }
 
@@ -300,20 +300,20 @@ form.db {
 form.db:after {
 	content:''; position: absolute; left: 10px; bottom: -10px; 
 	width: 24px; height: 10px;
-	background: url(images/blue-arr.gif);
+	background: url(adminer-plus/images/blue-arr.gif);
 }
 
 #menu div.add-table {
 	position: absolute; left: 0; bottom: 0; z-index: 2;
 	height: 24px; width: 25%;
-	background: url(images/bottom-bar.gif) repeat-x;
+	background: url(adminer-plus/images/bottom-bar.gif) repeat-x;
 }
 
 	#menu div.add-table a {
 		position: absolute; left: 0; top: 0;
 		width: 34px; height: 23px; overflow: hidden;
 		border-right: 1px solid #777;
-		background: url(images/icon-plus.gif) center center no-repeat;
+		background: url(adminer-plus/images/icon-plus.gif) center center no-repeat;
 		text-indent: -999em; 
 	}
 
@@ -341,7 +341,7 @@ form.db:after {
 	position: absolute; left: 20px; top: 0;
 	width: 17px; height: 17px; padding: 0; overflow: hidden;
 	border: 0;
-	background: url(images/icon-data.png) left center no-repeat;
+	background: url(adminer-plus/images/icon-data.png) left center no-repeat;
 	text-indent: -999em;
 	opacity: 0.50; filter: alpha(opacity=50); -ms-filter: "alpha(opacity=50)";
 }
@@ -357,7 +357,7 @@ form.db:after {
 	
 	#tables li.active {
 		border-top: 1px solid #a2b0cc;
-		background: #9fafcc url(images/menu-active.gif) repeat-x;
+		background: #9fafcc url(adminer-plus/images/menu-active.gif) repeat-x;
 	}
 	
 		#tables li.active a {
@@ -365,7 +365,7 @@ form.db:after {
 		}
 		
 		#tables li.active a.d {
-			background-image: url(images/icon-data-white.png); 
+			background-image: url(adminer-plus/images/icon-data-white.png); 
 		}
 
 
@@ -400,14 +400,14 @@ form.db:after {
 		-moz-border-radius:    4px; 
 		-webkit-border-radius: 4px; 
 		border-radius:         4px; 
-		background: #FEFEFE url(images/grad-switch.png) repeat-x;
+		background: #aaa url(adminer-plus/images/grad-switch.png) repeat-x;
 		line-height: 1;
 		text-decoration: none; color: #000;
 	}
 	
 	.nav a:hover,
 	#content p > a:only-child:hover {
-		background-position: 0 5px;
+		background-color: #FEFEFE; background-position: 0 5px;
 	}
 
 
@@ -547,7 +547,7 @@ td input[type="checkbox"] + a:active {
 form.select {
 	width: 520px;
 	overflow: hidden;
-	background: url(images/grey.gif) no-repeat; background-size: 90px 100% ;
+	background: url(adminer-plus/images/grey.gif) no-repeat; background-size: 90px 100% ;
 }
 
 form.select fieldset {
@@ -577,7 +577,7 @@ form.select fieldset.length {
 	form.select .search legend a,
 	form.select .order legend a {
 		background: #eee ; 
-		border-right: 1px solid #fff; /*url(images/arrow-big-right.png) right center no-repeat*/
+		border-right: 1px solid #fff; /*url(adminer-plus/images/arrow-big-right.png) right center no-repeat*/
 	}
 
 	form.select .limit legend,
@@ -668,7 +668,8 @@ form.select fieldset.length {
 /* @end */
 /* @end */
 
-.pages ~ fieldset {
+.pages ~ fieldset,
+.submit-bar ~ fieldset {
 	margin: 20px 0;
 	padding: 5px;
 	border: 1px solid #ccc;
@@ -690,7 +691,7 @@ fieldset legend a {
 	position: absolute; right: 60px; top: 25px;
 	width: 32px; height: 32px;
 	border: 0;
-	background: url(images/font-size.png) no-repeat;
+	background: url(adminer-plus/images/font-size.png) no-repeat;
 	text-indent: -999em; overflow: hidden;
 	cursor: pointer;
 }

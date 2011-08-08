@@ -37,12 +37,7 @@ var areYouSure = '<?php echo lang('Resend POST data?'); ?>';
 <link rel="stylesheet" type="text/css" href="adminer.css">
 	<?php } else { ?>
 <link rel="stylesheet" type="text/css" href="../adminer/static/default.css">
-	<?php } ?>
-	
-	<?php if (file_exists("adminer.js")) { ?>
-<script type="text/javascript" src="adminer.js"></script>
-	<?php } ?>
-	
+	<?php } ?>	
 <?php } ?>
 <body class="<?php echo lang('ltr'); ?> nojs"<?php echo ($_POST ? "" : " onclick=\"return bodyClick(event, '" . h(js_escape(DB) . "', '" . js_escape($_GET["ns"])) . "');\""); // avoid re-post confirmation after refreshing the next page in Google Chrome ?> onkeydown="bodyKeydown(event);" onload="bodyLoad('<?php echo (is_object($connection) ? substr($connection->server_info, 0, 3) : ""); ?>');<?php echo (isset($_COOKIE["adminer_version"]) ? "" : " verifyVersion();"); ?>">
 <script type="text/javascript">
