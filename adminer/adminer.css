@@ -116,7 +116,28 @@ input, select, textarea {font-size: inherit;}
 /* @end */
 
 #lang {
-	display: none;
+	position: absolute; top: 76px; right: 23px;
+	padding: 10px;
+	-moz-border-radius:    5px; 
+	-webkit-border-radius: 5px; 
+	border-radius:         5px; 
+	background-color: rgba(30,30,30,0.9);
+	color: #eee;
+}
+
+	#lang:before {
+		content:''; position: absolute; left: 80px; top: -31px;
+		width: 1px; height: 1px;
+		border:15px solid red; border-color: transparent transparent rgba(30,30,30,0.9) transparent;
+	}
+
+#settings {
+	position: absolute; right: 107px; top: 26px;
+	width: 32px; height: 32px;
+	border: 0;
+	background: url(adminer-plus/images/icon-wrench.png) no-repeat;
+	text-indent: -999em; overflow: hidden;
+	cursor: pointer;
 }
 
 #data-or-structure {

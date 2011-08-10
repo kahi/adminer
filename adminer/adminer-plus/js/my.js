@@ -3,6 +3,14 @@ $(document).ready(function(){
 	// Add font-size icon
 	$('#container').append('<button id="font-size">Change font size</button>');
 	
+	// Add language controller
+	if ($('#lang').length) {
+		$('#lang').hide();
+		$('#container').append('<button id="settings">Settings</button>');
+
+		$('#settings').click(function(){$('#lang').fadeToggle(100);});
+	}
+
 	var font_sizes = ['10px', '11px', '12px', '13px', '14px', '15px', '15px', '14px', '13px', '12px', '11px', '11px'],
 	current_font_size = 2;
 	
