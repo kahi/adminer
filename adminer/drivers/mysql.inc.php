@@ -335,7 +335,7 @@ if (!defined("DRIVER")) {
 	}
 
 	/** Get tables list
-	* @return array
+	* @return array array($name => $type)
 	*/
 	function tables_list() {
 		global $connection;
@@ -356,7 +356,7 @@ if (!defined("DRIVER")) {
 
 	/** Get table status
 	* @param string
-	* @return array
+	* @return array array($name => array("Name" => , "Engine" => , "Comment" => , "Oid" => , "Rows" => , "Collation" => , "Auto_increment" => , "Data_length" => , "Index_length" => , "Data_free" => )) or only inner array with $name
 	*/
 	function table_status($name = "") {
 		$return = array();
@@ -444,7 +444,7 @@ if (!defined("DRIVER")) {
 		$return = array();
 		$create_table = $connection->result("SHOW CREATE TABLE " . table($table), 1);
 		if ($create_table) {
-			preg_match_all("~CONSTRAINT ($pattern) FOREIGN KEY \\(((?:$pattern,? ?)+)\\) REFERENCES ($pattern)(?:\\.($pattern))? \\(((?:$pattern,? ?)+)\\)(?: ON DELETE (" . implode("|", $on_actions) . "))?(?: ON UPDATE (" . implode("|", $on_actions) . "))?~", $create_table, $matches, PREG_SET_ORDER);
+			preg_match_all("~CONSTRAINT ($pattern) FOREIGN KEY \\(((?:$pattern,? ?)+)\\) REFERENCES ($pattern)(?:\\.($pattern))? \\(((?:$pattern,? ?)+)\\)(?: ON DELETE ($on_actions))?(?: ON UPDATE ($on_actions))?~", $create_table, $matches, PREG_SET_ORDER);
 			foreach ($matches as $match) {
 				preg_match_all("~$pattern~", $match[2], $source);
 				preg_match_all("~$pattern~", $match[5], $target);
@@ -820,6 +820,15 @@ if (!defined("DRIVER")) {
 	*/
 	function explain($connection, $query) {
 		return $connection->query("EXPLAIN $query");
+	}
+	
+	/** Get approximate number of rows
+	* @param array
+	* @param array
+	* @return int or null if approximate number can't be retrieved
+	*/
+	function found_rows($table_status, $where) {
+		return ($where || $table_status["Engine"] != "InnoDB" ? null : $table_status["Rows"]);
 	}
 	
 	/** Get user defined types

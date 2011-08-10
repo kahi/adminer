@@ -167,7 +167,7 @@ if (isset($_GET["pgsql"])) {
 	}
 	
 	function get_databases() {
-		return get_vals("SELECT datname FROM pg_database");
+		return get_vals("SELECT datname FROM pg_database ORDER BY datname");
 	}
 	
 	function limit($query, $where, $limit, $offset = 0, $separator = " ") {
@@ -269,20 +269,25 @@ ORDER BY a.attnum"
 	}
 	
 	function foreign_keys($table) {
+		global $on_actions;
 		$return = array();
-		foreach (get_rows("SELECT tc.constraint_name, kcu.column_name, rc.update_rule AS on_update, rc.delete_rule AS on_delete, unique_constraint_schema AS ns, ccu.table_name AS table, ccu.column_name AS ref
-FROM information_schema.table_constraints tc
-LEFT JOIN information_schema.key_column_usage kcu USING (constraint_catalog, constraint_schema, constraint_name)
-LEFT JOIN information_schema.referential_constraints rc USING (constraint_catalog, constraint_schema, constraint_name)
-LEFT JOIN information_schema.constraint_column_usage ccu ON rc.unique_constraint_catalog = ccu.constraint_catalog AND rc.unique_constraint_schema = ccu.constraint_schema AND rc.unique_constraint_name = ccu.constraint_name
-WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.constraint_schema = current_schema() AND tc.table_name = " . q($table) //! there can be more unique_constraint_name
-		) as $row) {
-			$foreign_key = &$return[$row["constraint_name"]];
-			if (!$foreign_key) {
-				$foreign_key = $row;
+		foreach (get_rows("SELECT conname, pg_get_constraintdef(oid) AS definition
+FROM pg_constraint
+WHERE conrelid = (SELECT oid FROM pg_class WHERE relname = " . q($table) . ")
+AND contype = 'f'::char
+ORDER BY conkey, conname") as $row) {
+			if (preg_match('~FOREIGN KEY\s*\((.+)\)\s*REFERENCES (.+)\((.+)\)(.*)$~iA', $row['definition'], $match)) {
+				$row['source'] = array_map('trim', explode(',', $match[1]));
+				$row['table'] = $match[2];
+				if (preg_match('~(.+)\.(.+)~', $match[2], $match2)) {
+					$row['ns'] = $match2[1];
+					$row['table'] = $match2[2];
+				}
+				$row['target'] = array_map('trim', explode(',', $match[3]));
+				$row['on_delete'] = (preg_match("~ON DELETE ($on_actions)~", $match[4], $match2) ? $match2[1] : '');
+				$row['on_update'] = (preg_match("~ON UPDATE ($on_actions)~", $match[4], $match2) ? $match2[1] : '');
+				$return[$row['conname']] = $row;
 			}
-			$foreign_key["source"][] = $row["column_name"];
-			$foreign_key["target"][] = $row["ref"];
 		}
 		return $return;
 	}
@@ -511,6 +516,18 @@ ORDER BY p.proname');
 		return $connection->query("EXPLAIN $query");
 	}
 	
+	function found_rows($table_status, $where) {
+		global $connection;
+		if (ereg(
+			" rows=([0-9]+)",
+			$connection->result("EXPLAIN SELECT * FROM " . idf_escape($table_status["Name"]) . ($where ? " WHERE " . implode(" AND ", $where) : "")),
+			$regs
+		)) {
+			return $regs[1];
+		}
+		return false;
+	}
+	
 	function types() {
 		return get_vals("SELECT typname
 FROM pg_type
@@ -521,7 +538,7 @@ AND typelem = 0"
 	}
 	
 	function schemas() {
-		return get_vals("SELECT nspname FROM pg_namespace");
+		return get_vals("SELECT nspname FROM pg_namespace ORDER BY nspname");
 	}
 	
 	function get_schema() {

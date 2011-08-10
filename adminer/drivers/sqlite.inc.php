@@ -503,6 +503,9 @@ if (isset($_GET["sqlite"]) || isset($_GET["sqlite2"])) {
 		return $connection->query("EXPLAIN $query");
 	}
 	
+	function found_rows($table_status, $where) {
+	}
+	
 	function types() {
 		return array();
 	}
