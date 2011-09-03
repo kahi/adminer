@@ -74,10 +74,10 @@ if ($_POST && !$error && !$_POST["add"] && !$_POST["drop_col"] && !$_POST["up"] 
 		} elseif ($TABLE != "" && support("partitioning")) {
 			$partitioning .= "\nREMOVE PARTITIONING";
 		}
-		$message = lang('Table has been altered.');
+		$message = array(lang('Table has been altered.'), 'success');
 		if ($TABLE == "") {
 			cookie("adminer_engine", $_POST["Engine"]);
-			$message = lang('Table has been created.');
+			$message = array(lang('Table has been created.'), 'success');
 		}
 		queries_redirect(ME . "table=" . urlencode($_POST["name"]), $message, alter_table(
 			$TABLE,

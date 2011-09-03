@@ -11,13 +11,13 @@ if ($tables_views && !$error && !$_POST["search"]) {
 		if ($_POST["tables"]) {
 			$result = truncate_tables($_POST["tables"]);
 		}
-		$message = lang('Tables have been truncated.');
+		$message = array(lang('Tables have been truncated.'), 'success');
 	} elseif ($_POST["move"]) {
 		$result = move_tables((array) $_POST["tables"], (array) $_POST["views"], $_POST["target"]);
-		$message = lang('Tables have been moved.');
+		$message = array(lang('Tables have been moved.'), 'success');
 	} elseif ($_POST["copy"]) {
 		$result = copy_tables((array) $_POST["tables"], (array) $_POST["views"], $_POST["target"]);
-		$message = lang('Tables have been copied.');
+		$message = array(lang('Tables have been copied.'), 'success');
 	} elseif ($_POST["drop"]) {
 		if ($_POST["views"]) {
 			$result = drop_views($_POST["views"]);
@@ -25,7 +25,7 @@ if ($tables_views && !$error && !$_POST["search"]) {
 		if ($result && $_POST["tables"]) {
 			$result = drop_tables($_POST["tables"]);
 		}
-		$message = lang('Tables have been dropped.');
+		$message = array(lang('Tables have been dropped.'), 'success');
 	} elseif ($_POST["tables"] && ($result = queries(($_POST["optimize"] ? "OPTIMIZE" : ($_POST["check"] ? "CHECK" : ($_POST["repair"] ? "REPAIR" : "ANALYZE"))) . " TABLE " . implode(", ", array_map('idf_escape', $_POST["tables"]))))) {
 		while ($row = $result->fetch_assoc()) {
 			$message .= "<b>" . h($row["Table"]) . "</b>: " . h($row["Msg_text"]) . "<br>";

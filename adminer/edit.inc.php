@@ -17,7 +17,7 @@ if ($_POST && !$error && !isset($_GET["select"])) {
 		$location = ME . "select=" . urlencode($TABLE);
 	}
 	if (isset($_POST["delete"])) {
-		query_redirect("DELETE" . limit1("FROM " . table($TABLE), " WHERE $where"), $location, lang('Item has been deleted.'));
+		query_redirect("DELETE" . limit1("FROM " . table($TABLE), " WHERE $where"), $location, array(lang('Item has been deleted.'), 'success'));
 	} else {
 		$set = array();
 		foreach ($fields as $name => $field) {
@@ -30,11 +30,11 @@ if ($_POST && !$error && !isset($_GET["select"])) {
 			if (!$set) {
 				redirect($location);
 			}
-			query_redirect("UPDATE" . limit1(table($TABLE) . " SET" . implode(",", $set), "\nWHERE $where"), $location, lang('Item has been updated.'));
+			query_redirect("UPDATE" . limit1(table($TABLE) . " SET" . implode(",", $set), "\nWHERE $where"), $location, array(lang('Item has been updated.'), 'success'));
 		} else {
 			$result = insert_into($TABLE, $set);
 			$last_id = ($result ? last_id() : 0);
-			queries_redirect($location, lang('Item%s has been inserted.', ($last_id ? " $last_id" : "")), $result); //! link
+			queries_redirect($location, array(lang('Item%s has been inserted.', ($last_id ? " $last_id" : "")), 'success'), $result); //! link
 		}
 	}
 }

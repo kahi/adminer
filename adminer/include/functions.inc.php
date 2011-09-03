@@ -440,7 +440,7 @@ function is_ajax() {
 
 /** Send Location header and exit
 * @param string null to only set a message
-* @param string
+* @param string|array
 * @return null
 */
 function redirect($location, $message = null) {
@@ -460,7 +460,7 @@ function redirect($location, $message = null) {
 /** Execute query and redirect if successful
 * @param string
 * @param string
-* @param string
+* @param string|array
 * @param bool
 * @param bool
 * @param bool
@@ -480,7 +480,8 @@ function query_redirect($query, $location, $message, $redirect = true, $execute 
 		return false;
 	}
 	if ($redirect) {
-		redirect($location, $message . $sql);
+		$message = (is_array($message)) ? array($message[0] . $sql, $message[1]) : $message . $sql;
+		redirect($location, $message);
 	}
 	return true;
 }
@@ -881,4 +882,14 @@ function is_mail($email) {
 function is_url($string) {
 	$domain = '[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])'; // one domain component //! IDN
 	return (preg_match("~^(https?)://($domain?\\.)+$domain(:\\d+)?(/.*)?(\\?.*)?(#.*)?\$~i", $string, $match) ? strtolower($match[1]) : ""); //! restrict path, query and fragment characters
+}
+
+/** Dump variable in readable form
+ * @param mixed
+ * @return null
+ */
+function my_var_dump($var) {
+	echo '<pre>';
+	var_dump($var);
+	echo '</pre>';
 }

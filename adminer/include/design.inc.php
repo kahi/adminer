@@ -81,7 +81,12 @@ document.body.className = document.body.className.replace(/(^|\s)nojs(\s|$)/, '$
 	$uri = preg_replace('~^[^?]*~', '', $_SERVER["REQUEST_URI"]);
 	$messages = $_SESSION["messages"][$uri];
 	if ($messages) {
-		echo "<div class='message warning'>" . implode("</div>\n<div class='message warning'>", $messages) . "</div>\n";
+		foreach ((array)$messages as $m) {
+			if (is_array($m))
+				echo "<div class='message $m[1]'>$m[0]</div>\n";
+			else 
+				echo "<div class='message warning'>$m</div>\n";
+		}
 		unset($_SESSION["messages"][$uri]);
 	}
 	$databases = &get_session("dbs");

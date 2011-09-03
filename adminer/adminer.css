@@ -450,7 +450,8 @@ form.db:after {
 /* @group Messages */
 
 .message,
-p.error {
+p.error,
+div.error {
 	margin: 1em 0;
 	padding: 10px;
 	background-color: #f7f7f7;
@@ -462,6 +463,7 @@ p.error {
 }
 
 p.error,
+div.error,
 .message.error {
 	background-color:#fbb;
 }

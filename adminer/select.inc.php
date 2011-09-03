@@ -117,7 +117,7 @@ if ($_POST && !$error) {
 					}
 				}
 			}
-			queries_redirect(remove_from_uri("page"), lang('%d item(s) have been affected.', $affected), $result);
+			queries_redirect(remove_from_uri("page"), array(lang('%d item(s) have been affected.', $affected), ($affected) ? 'success' : 'warning'), $result);
 			//! display edit page in case of an error
 		} elseif (!$_POST["import"]) { // modify
 			if (!$_POST["val"]) {
@@ -139,7 +139,7 @@ if ($_POST && !$error) {
 					}
 					$affected += $connection->affected_rows;
 				}
-				queries_redirect(remove_from_uri(), lang('%d item(s) have been affected.', $affected), $result);
+				queries_redirect(remove_from_uri(), array(lang('%d item(s) have been affected.', $affected), ($affected) ? 'success' : 'warning'), $result);
 			}
 		} elseif (is_string($file = get_file("csv_file", true))) {
 			//! character set
