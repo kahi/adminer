@@ -716,3 +716,7 @@ fieldset legend a {
 	text-indent: -999em; overflow: hidden;
 	cursor: pointer;
 }
+
+textarea.sqlarea {
+	font-family: 'Andale Mono', 'Lucida Console', Consolas, monospace;
+}
