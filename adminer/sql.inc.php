@@ -171,12 +171,16 @@ if ($_POST) {
 } elseif ($_GET["history"] != "") {
 	$q = $history[$_GET["history"]];
 }
+echo '<div id="textarea">';
 textarea("query", $q, 20);
+echo '</div>';
+
 echo ($_POST ? "" : "<script type='text/javascript'>document.getElementsByTagName('textarea')[0].focus();</script>\n");
-echo "<p>" . (ini_bool("file_uploads")
+echo "<div id='file-upload'><p>" . (ini_bool("file_uploads")
 	? lang('File upload') . ': <input type="file" name="sql_file"' . ($_FILES && $_FILES["sql_file"]["error"] != 4 ? '' : ' onchange="this.form[\'only_errors\'].checked = true;"') . '> (&lt; ' . ini_get("upload_max_filesize") . 'B)' // ignore post_max_size because it is for all form fields together and bytes computing would be necessary
 	: lang('File uploads are disabled.')
 );
+echo '</p></div>';
 
 ?>
 <p class="submit-bar">

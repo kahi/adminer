@@ -691,6 +691,8 @@ form.select fieldset.length {
 /* @end */
 /* @end */
 
+/* @group Who knows */
+
 .pages ~ fieldset,
 .submit-bar ~ fieldset {
 	margin: 20px 0;
@@ -720,5 +722,98 @@ fieldset legend a {
 }
 
 textarea.sqlarea {
+	border-color: #ddd; border-radius: 4px; padding: 5px;
 	font-family: 'Andale Mono', 'Lucida Console', Consolas, monospace;
+	font-size: 14px;
 }
+
+/* @end */
+/* @group Specific pages */
+
+	/* SQL command */
+	
+	#textarea {
+		float: left;
+		width: 70%; padding: 20px 25px 20px 0;
+		border-right: 2px dotted #bbb;
+		-moz-box-sizing:    border-box;
+		-ms-box-sizing:     border-box;
+		-webkit-box-sizing: border-box;
+		box-sizing:         border-box;
+	}
+	
+		#textarea textarea {
+			width: 100%; height: 10em;
+			-moz-box-sizing:    border-box;
+			-ms-box-sizing:     border-box;
+			-webkit-box-sizing: border-box;
+			box-sizing:         border-box;
+		}
+	
+	#file-upload {
+		float: right;
+		width: 30%; padding-left: 60px; padding-top: 20px;
+		background: 25px 20px url(http://cdn3.iconfinder.com/data/icons/fugue/bonus/icons-24/script-export.png) no-repeat;
+		-moz-box-sizing:    border-box;
+		-ms-box-sizing:     border-box;
+		-webkit-box-sizing: border-box;
+		box-sizing:         border-box;
+	}
+
+		#file-upload p {
+			margin: 0; line-height: 3;
+		}
+	
+	.submit-bar {
+		clear: both;
+		padding: 1em 0;
+		background-color: #f5f5f5; 
+		text-align: center;
+	}
+	
+		.submit-bar label {
+			display: block; margin-top: 15px;
+		}
+		
+		.submit-bar label + label {
+			margin-top: 5px;
+		}
+	
+	fieldset {
+		min-height: 30px;
+	}
+	
+	a[href="#fieldset-history"] {
+		display: block; 
+		height: 25px; padding: 0 10px 0 30px;
+		border-bottom: none;
+		background: url(http://cdn2.iconfinder.com/data/icons/Siena/24/clock.png) left center no-repeat;
+		line-height: 30px;
+	}
+	
+	#fieldset-history {
+		padding: 10px;
+		line-height: 2;
+	}
+	
+		#fieldset-history a {
+			margin-right: 5px;
+		}
+	
+		#fieldset-history input[type=submit] {
+			float: right;
+		}
+		
+	a[href="#fieldset-webfile"] {
+		display: block; 
+		height: 25px; padding: 0 10px 0 30px;
+		border-bottom: none;
+		background: url(http://cdn1.iconfinder.com/data/icons/humano2/24x24/devices/drive-harddisk-ieee1394.png) left center no-repeat;
+		line-height: 30px;
+	}
+				
+	#fieldset-webfile {
+		padding: 10px;
+	}
+
+/* @end */
