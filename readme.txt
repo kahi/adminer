@@ -1,12 +1,14 @@
 This Adminer fork
 #################
 
-How to create "minified" version? 1. Run compile.php (creates adminer.php) 2. Place the adminer.php, adminer/my_adminer.php, adminer/adminer.css, folder 'adminer-plus' into same directory 3. run my_adminer.php
+What is this? Better-looking Adminer.
+Screenshot: http://cl.ly/image/3R173Z0p0o20
 
-This fork is based on Adminer 3.3.1. Hence various differences from the original branche, this look is not available as a "skin" (adminer.css) (yet).
+Minified version (and all its assets) are in `compiled` folder.
 
-Screenshot: http://kahi.cz/blog/images/adminer-makeup/bomba.png
-More info: http://kahi.cz/blog/adminer-s-makeupem
+This fork is based on Adminer 3.3.1. Hence various differences from the original branche, this look is not available as a "skin" (adminer.css).
+
+More info [in czech]: http://kahi.cz/blog/adminer-s-makeupem
 
 
 Adminer
