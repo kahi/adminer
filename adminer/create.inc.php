@@ -24,13 +24,15 @@ if ($_POST && !$error && !$_POST["add"] && !$_POST["drop_col"] && !$_POST["up"] 
 		query_redirect("DROP TABLE " . table($TABLE), substr(ME, 0, -1), lang('Table has been dropped.'));
 	} else {
 		$fields = array();
+		$all_fields = array();
+		$use_all_fields = false;
 		$foreign = array();
 		ksort($_POST["fields"]);
 		$orig_field = reset($orig_fields);
-		$after = "FIRST";
+		$after = " FIRST";
 		foreach ($_POST["fields"] as $key => $field) {
 			$foreign_key = $foreign_keys[$field["type"]];
-			$type_field = (isset($foreign_key) ? $referencable_primary[$foreign_key] : $field); //! can collide with user defined type
+			$type_field = ($foreign_key !== null ? $referencable_primary[$foreign_key] : $field); //! can collide with user defined type
 			if ($field["field"] != "") {
 				if (!$field["has_default"]) {
 					$field["default"] = null;
@@ -44,18 +46,26 @@ if ($_POST && !$error && !$_POST["add"] && !$_POST["drop_col"] && !$_POST["up"] 
 					$field["auto_increment"] = true;
 				}
 				$process_field = process_field($field, $type_field);
+				$all_fields[] = array($field["orig"], $process_field, $after);
 				if ($process_field != process_field($orig_field, $orig_field)) {
 					$fields[] = array($field["orig"], $process_field, $after);
+					if ($field["orig"] != "" || $after) {
+						$use_all_fields = true;
+					}
 				}
-				if (isset($foreign_key)) {
-					$foreign[idf_escape($field["field"])] = ($TABLE != "" ? "ADD" : " ") . " FOREIGN KEY (" . idf_escape($field["field"]) . ") REFERENCES " . table($foreign_keys[$field["type"]]) . " (" . idf_escape($type_field["field"]) . ")" . (ereg("^($on_actions)\$", $field["on_delete"]) ? " ON DELETE $field[on_delete]" : "");
+				if ($foreign_key !== null) {
+					$foreign[idf_escape($field["field"])] = ($TABLE != "" && $jush != "sqlite" ? "ADD" : " ") . " FOREIGN KEY (" . idf_escape($field["field"]) . ") REFERENCES " . table($foreign_keys[$field["type"]]) . " (" . idf_escape($type_field["field"]) . ")" . (ereg("^($on_actions)\$", $field["on_delete"]) ? " ON DELETE $field[on_delete]" : "");
 				}
-				$after = "AFTER " . idf_escape($field["field"]);
+				$after = " AFTER " . idf_escape($field["field"]);
 			} elseif ($field["orig"] != "") {
+				$use_all_fields = true;
 				$fields[] = array($field["orig"]);
 			}
 			if ($field["orig"] != "") {
 				$orig_field = next($orig_fields);
+				if (!$orig_field) {
+					$after = "";
+				}
 			}
 		}
 		$partitioning = "";
@@ -71,7 +81,7 @@ if ($_POST && !$error && !$_POST["add"] && !$_POST["drop_col"] && !$_POST["up"] 
 				? " (" . implode(",", $partitions) . "\n)"
 				: ($_POST["partitions"] ? " PARTITIONS " . (+$_POST["partitions"]) : "")
 			);
-		} elseif ($TABLE != "" && support("partitioning")) {
+		} elseif (support("partitioning") && ereg("partitioned", $orig_status["Create_options"])) {
 			$partitioning .= "\nREMOVE PARTITIONING";
 		}
 		$message = array(lang('Table has been altered.'), 'success');
@@ -79,10 +89,11 @@ if ($_POST && !$error && !$_POST["add"] && !$_POST["drop_col"] && !$_POST["up"] 
 			cookie("adminer_engine", $_POST["Engine"]);
 			$message = array(lang('Table has been created.'), 'success');
 		}
-		queries_redirect(ME . "table=" . urlencode($_POST["name"]), $message, alter_table(
+		$name = trim($_POST["name"]);
+		queries_redirect(ME . "table=" . urlencode($name), $message, alter_table(
 			$TABLE,
-			$_POST["name"],
-			$fields,
+			$name,
+			($jush == "sqlite" && ($use_all_fields || $foreign) ? $all_fields : $fields),
 			$foreign,
 			$_POST["Comment"],
 			($_POST["Engine"] && $_POST["Engine"] != $orig_status["Engine"] ? $_POST["Engine"] : ""),

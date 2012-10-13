@@ -19,11 +19,19 @@ class Adminer {
 	
 	function database() {
 		global $connection;
-		$databases = get_databases(false);
+		$databases = $this->databases(false);
 		return (!$databases
 			? $connection->result("SELECT SUBSTRING_INDEX(CURRENT_USER, '@', 1)") // username without the database list
 			: $databases[(information_schema($databases[0]) ? 1 : 0)] // first available database
 		);
+	}
+	
+	function databases($flush = true) {
+		return get_databases($flush);
+	}
+	
+	function queryTimeout() {
+		return 5;
 	}
 	
 	function headers() {
@@ -37,15 +45,15 @@ class Adminer {
 	function loginForm() {
 		?>
 <table cellspacing="0">
-<tr><th><?php echo lang('Username'); ?><td><input type="hidden" name="driver" value="server"><input type="hidden" name="server" value=""><input id="username" name="username" value="<?php echo h($_GET["username"]);  ?>">
-<tr><th><?php echo lang('Password'); ?><td><input type="password" name="password">
+<tr><th><?php echo lang('Username'); ?><td><input type="hidden" name="auth[driver]" value="server"><input id="username" name="auth[username]" value="<?php echo h($_GET["username"]);  ?>">
+<tr><th><?php echo lang('Password'); ?><td><input type="password" name="auth[password]">
 </table>
 <script type="text/javascript">
 document.getElementById('username').focus();
 </script>
 <?php
 		echo "<p><input type='submit' value='" . lang('Login') . "'>\n";
-		echo checkbox("permanent", 1, $_COOKIE["adminer_permanent"], lang('Permanent login')) . "\n";
+		echo checkbox("auth[permanent]", 1, $_COOKIE["adminer_permanent"], lang('Permanent login')) . "\n";
 	}
 	
 	function login($login, $password) {
@@ -64,7 +72,7 @@ document.getElementById('username').focus();
 	
 	function selectLinks($tableStatus, $set = "") {
 		$TABLE = $tableStatus["Name"];
-		if (isset($set)) {
+		if ($set !== null) {
 			echo '<p class="tabs"><a href="' . h(ME . 'edit=' . urlencode($TABLE) . $set) . '">' . lang('New item') . "</a>\n";
 		}
 		echo "<a href='" . h(remove_from_uri("page")) . "&amp;page=last' title='" . lang('Last page') . "'>&gt;&gt;</a>\n";
@@ -155,7 +163,7 @@ ORDER BY ORDINAL_POSITION", null, "") as $row) { //! requires MySQL 5
 	}
 	
 	function selectVal($val, $link, $field) {
-		$return = ($val == "<i>NULL</i>" ? "&nbsp;" : $val);
+		$return = ($val === null ? "&nbsp;" : $val);
 		if (ereg('blob|bytea', $field["type"]) && !is_utf8($val)) {
 			$return = lang('%d byte(s)', strlen($val));
 			if (ereg("^(GIF|\xFF\xD8\xFF|\x89PNG\x0D\x0A\x1A\x0A)", $val)) { // GIF|JPG|PNG, getimagetype() works with filename
@@ -163,7 +171,7 @@ ORDER BY ORDINAL_POSITION", null, "") as $row) { //! requires MySQL 5
 			}
 		}
 		if (like_bool($field) && $return != "&nbsp;") { // bool
-			$return = '<img src="' . ($val ? "../adminer/static/plus.gif" : "../adminer/static/cross.gif") . '" alt="' . h($val) . '">';
+			$return = ($val ? lang('yes') : lang('no'));
 		}
 		if ($link) {
 			$return = "<a href='$link'>$return</a>";
@@ -177,10 +185,10 @@ ORDER BY ORDINAL_POSITION", null, "") as $row) { //! requires MySQL 5
 	}
 	
 	function editVal($val, $field) {
-		if (ereg('date|timestamp', $field["type"]) && isset($val)) {
+		if (ereg('date|timestamp', $field["type"]) && $val !== null) {
 			return preg_replace('~^(\\d{2}(\\d+))-(0?(\\d+))-(0?(\\d+))~', lang('$1-$3-$5'), $val);
 		}
-		return (ereg("binary", $field["type"]) ? reset(unpack("H*", $val)) : $val);
+		return $val;
 	}
 	
 	function selectColumnsPrint($select, $columns) {
@@ -189,27 +197,26 @@ ORDER BY ORDINAL_POSITION", null, "") as $row) { //! requires MySQL 5
 	
 	function selectSearchPrint($where, $columns, $indexes) {
 		$where = (array) $_GET["where"];
-		echo '<fieldset><legend>' . lang('Search') . "</legend><div>\n";
+		echo '<fieldset id="fieldset-search"><legend>' . lang('Search') . "</legend><div>\n";
 		$keys = array();
 		foreach ($where as $key => $val) {
 			$keys[$val["col"]] = $key;
 		}
 		$i = 0;
 		$fields = fields($_GET["select"]);
-		foreach ($fields as $name => $field) {
-			$desc = $columns[$name];
-			if (ereg("enum", $field["type"]) && $desc != "") { //! set - uses 1 << $i and FIND_IN_SET()
+		foreach ($columns as $name => $desc) {
+			$field = $fields[$name];
+			if (ereg("enum", $field["type"]) || like_bool($field)) { //! set - uses 1 << $i and FIND_IN_SET()
 				$key = $keys[$name];
 				$i--;
 				echo "<div>" . h($desc) . "<input type='hidden' name='where[$i][col]' value='" . h($name) . "'>:";
-				echo enum_input("checkbox", " name='where[$i][val][]'", $field, (array) $where[$key]["val"], ($field["null"] ? 0 : null));
+				echo (like_bool($field)
+					? " <select name='where[$i][val]'>" . optionlist(array("" => "", lang('no'), lang('yes')), $where[$key]["val"], true) . "</select>"
+					: enum_input("checkbox", " name='where[$i][val][]'", $field, (array) $where[$key]["val"], ($field["null"] ? 0 : null))
+				);
 				echo "</div>\n";
 				unset($columns[$name]);
-			}
-		}
-		foreach ($columns as $name => $desc) {
-			$options = $this->_foreignKeyOptions($_GET["select"], $name);
-			if (is_array($options)) {
+			} elseif (is_array($options = $this->_foreignKeyOptions($_GET["select"], $name))) {
 				if ($fields[$name]["null"]) {
 					$options[0] = '(' . lang('empty') . ')';
 				}
@@ -228,9 +235,9 @@ ORDER BY ORDINAL_POSITION", null, "") as $row) { //! requires MySQL 5
 				$i++;
 			}
 		}
-		echo "<div><select name='where[$i][col]' onchange='selectAddRow(this);'><option value=''>(" . lang('anywhere') . ")" . optionlist($columns, null, true) . "</select>";
+		echo "<div><select name='where[$i][col]' onchange='this.nextSibling.nextSibling.onchange();'><option value=''>(" . lang('anywhere') . ")" . optionlist($columns, null, true) . "</select>";
 		echo html_select("where[$i][op]", array(-1 => "") + $this->operators);
-		echo "<input name='where[$i][val]'></div>\n";
+		echo "<input name='where[$i][val]' onchange='selectAddRow(this);'></div>\n";
 		echo "</div></fieldset>\n";
 	}
 	
@@ -268,7 +275,7 @@ ORDER BY ORDINAL_POSITION", null, "") as $row) { //! requires MySQL 5
 	function selectLengthPrint($text_length) {
 	}
 	
-	function selectActionPrint() {
+	function selectActionPrint($indexes) {
 		echo "<fieldset><legend>" . lang('Action') . "</legend><div>";
 		echo "<input type='submit' value='" . lang('Select') . "'>";
 		echo "</div></fieldset>\n";
@@ -288,7 +295,7 @@ ORDER BY ORDINAL_POSITION", null, "") as $row) { //! requires MySQL 5
 			echo "<div onkeydown=\"eventStop(event); return bodyKeydown(event, 'email');\">\n";
 			echo "<p>" . lang('From') . ": <input name='email_from' value='" . h($_POST ? $_POST["email_from"] : $_COOKIE["adminer_email"]) . "'>\n";
 			echo lang('Subject') . ": <input name='email_subject' value='" . h($_POST["email_subject"]) . "'>\n";
-			echo "<p><textarea name='email_message' rows='15' cols='75'>" . h($_POST["email_message"] . ($_POST["email_append"] ? '{$' . "$_POST[email_addition]}" : "")) . "</textarea>\n"; //! Ctrl+Enter for this.form.email
+			echo "<p><textarea name='email_message' rows='15' cols='75'>" . h($_POST["email_message"] . ($_POST["email_append"] ? '{$' . "$_POST[email_addition]}" : "")) . "</textarea>\n";
 			echo "<p onkeydown=\"eventStop(event); return bodyKeydown(event, 'email_append');\">" . html_select("email_addition", $columns, $_POST["email_addition"]) . "<input type='submit' name='email_append' value='" . lang('Insert') . "'>\n"; //! JavaScript
 			echo "<p>" . lang('Attachments') . ": <input type='file' name='email_files[]' onchange=\"this.onchange = function () { }; var el = this.cloneNode(true); el.value = ''; this.parentNode.appendChild(el);\">";
 			echo "<p>" . (count($emailFields) == 1 ? '<input type="hidden" name="email_field" value="' . h(key($emailFields)) . '">' : html_select("email_field", $emailFields));
@@ -404,8 +411,12 @@ ORDER BY ORDINAL_POSITION", null, "") as $row) { //! requires MySQL 5
 		return false;
 	}
 	
+	function selectQueryBuild($select, $where, $group, $order, $limit, $page) {
+		return "";
+	}
+	
 	function messageQuery($query) {
-		return "<!--\n" . str_replace("--", "--><!-- ", $query) . "\n-->";
+		return " <span class='time'>" . @date("H:i:s") . "</span><!--\n" . str_replace("--", "--><!-- ", $query) . "\n-->";
 	}
 	
 	function editFunctions($field) {
@@ -431,7 +442,7 @@ ORDER BY ORDINAL_POSITION", null, "") as $row) { //! requires MySQL 5
 			;
 		}
 		$options = $this->_foreignKeyOptions($table, $field["field"], $value);
-		if (isset($options)) {
+		if ($options !== null) {
 			return (is_array($options)
 				? "<select$attrs>" . optionlist($options, $value, true) . "</select>"
 				:  "<input value='" . h($value) . "'$attrs class='hidden'><input value='" . h($options) . "' class='jsonly' onkeyup=\"whisper('" . h(ME . "script=complete&source=" . urlencode($table) . "&field=" . urlencode($field["field"])) . "&value=', this);\"><div onclick='return whisperClick(event, this.previousSibling);'></div>"
@@ -465,15 +476,14 @@ ORDER BY ORDINAL_POSITION", null, "") as $row) { //! requires MySQL 5
 			$return = ($match["p1"] != "" ? $match["p1"] : ($match["p2"] != "" ? ($match["p2"] < 70 ? 20 : 19) . $match["p2"] : gmdate("Y"))) . "-$match[p3]$match[p4]-$match[p5]$match[p6]" . end($match);
 		}
 		$return = ($field["type"] == "bit" && ereg('^[0-9]+$', $value) ? $return : q($return));
-		if ($value == "" && ($field["null"] || !ereg('char|text', $field["type"])) && !like_bool($field)) {
+		if ($value == "" && like_bool($field)) {
+			$return = "0";
+		} elseif ($value == "" && ($field["null"] || !ereg('char|text', $field["type"]))) {
 			$return = "NULL";
 		} elseif (ereg('^(md5|sha1)$', $function)) {
 			$return = "$function($return)";
 		}
-		if (ereg("binary", $field["type"])) {
-			$return = "unhex($return)";
-		}
-		return $return;
+		return unconvert_field($field, $return);
 	}
 	
 	function dumpOutput() {
@@ -502,6 +512,10 @@ ORDER BY ORDINAL_POSITION", null, "") as $row) { //! requires MySQL 5
 		}
 	}
 	
+	function dumpFilename($identifier) {
+		return friendly_url($identifier);
+	}
+	
 	function dumpHeaders($identifier, $multi_table = false) {
 		$ext = "csv";
 		header("Content-Type: text/csv; charset=utf-8");
@@ -523,9 +537,9 @@ ORDER BY ORDINAL_POSITION", null, "") as $row) { //! requires MySQL 5
 		if ($missing == "auth") {
 			$first = true;
 			foreach ((array) $_SESSION["pwds"]["server"][""] as $username => $password) {
-				if (isset($password)) {
+				if ($password !== null) {
 					if ($first) {
-						echo "<p onclick='eventStop(event);'>\n";
+						echo "<p id='logins' onmouseover='menuOver(this, event);' onmouseout='menuOut(this);'>\n";
 						$first = false;
 					}
 					echo "<a href='" . h(auth_url("server", "", $username)) . "'>" . ($username != "" ? h($username) : "<i>" . lang('empty') . "</i>") . "</a><br>\n";
@@ -535,11 +549,12 @@ ORDER BY ORDINAL_POSITION", null, "") as $row) { //! requires MySQL 5
 			?>
 <form action="" method="post">
 <p class="logout">
-<input type="submit" name="logout" value="<?php echo lang('Logout'); ?>" onclick="eventStop(event);">
+<input type="submit" name="logout" value="<?php echo lang('Logout'); ?>" id="logout">
 <input type="hidden" name="token" value="<?php echo $token; ?>">
 </p>
 </form>
 <?php
+			$this->databasesPrint($missing);
 			if ($missing != "db" && $missing != "ns") {
 				$table_status = table_status();
 				if (!$table_status) {
@@ -551,12 +566,15 @@ ORDER BY ORDINAL_POSITION", null, "") as $row) { //! requires MySQL 5
 		}
 	}
 	
+	function databasesPrint($missing) {
+	}
+	
 	function tablesPrint($tables) {
-		echo "<p id='tables'>\n";
+		echo "<p id='tables' onmouseover='menuOver(this, event);' onmouseout='menuOut(this);'>\n";
 		foreach ($tables as $row) {
 			$name = $this->tableName($row);
 			if (isset($row["Engine"]) && $name != "") { // ignore views and tables without name
-				echo "<a href='" . h(ME) . 'select=' . urlencode($row["Name"]) . "'" . bold($_GET["select"] == $row["Name"]) . ">$name</a><br>\n";
+				echo "<a href='" . h(ME) . 'select=' . urlencode($row["Name"]) . "'" . bold($_GET["select"] == $row["Name"]) . " title='" . lang('Select data') . "'>$name</a><br>\n";
 			}
 		}
 	}
@@ -577,11 +595,11 @@ ORDER BY ORDINAL_POSITION", null, "") as $row) { //! requires MySQL 5
 		global $connection;
 		if (list($target, $id, $name) = $this->_foreignColumn(column_foreign_keys($table), $column)) {
 			$return = &$this->_values[$target];
-			if (!isset($return)) {
+			if ($return === null) {
 				$table_status = table_status($target);
 				$return = ($table_status["Rows"] > 1000 ? "" : array("" => "") + get_key_vals("SELECT $id, $name FROM " . table($target) . " ORDER BY 2"));
 			}
-			if (!$return && isset($value)) {
+			if (!$return && $value !== null) {
 				return $connection->result("SELECT $name FROM " . table($target) . " WHERE $id = " . q($value));
 			}
 			return $return;

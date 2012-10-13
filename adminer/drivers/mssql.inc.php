@@ -23,7 +23,7 @@ if (isset($_GET["mssql"])) {
 			}
 
 			function connect($server, $username, $password) {
-				$this->_link = @sqlsrv_connect($server, array("UID" => $username, "PWD" => $password));
+				$this->_link = @sqlsrv_connect($server, array("UID" => $username, "PWD" => $password, "CharacterSet" => "UTF-8"));
 				if ($this->_link) {
 					$info = sqlsrv_server_info($this->_link);
 					$this->server_info = $info['SQLServerVersion'];
@@ -43,6 +43,7 @@ if (isset($_GET["mssql"])) {
 
 			function query($query, $unbuffered = false) {
 				$result = sqlsrv_query($this->_link, $query); //! , array(), ($unbuffered ? array() : array("Scrollable" => "keyset"))
+				$this->error = "";
 				if (!$result) {
 					$this->_get_error();
 					return false;
@@ -52,6 +53,7 @@ if (isset($_GET["mssql"])) {
 
 			function multi_query($query) {
 				$this->_result = sqlsrv_query($this->_link, $query);
+				$this->error = "";
 				if (!$this->_result) {
 					$this->_get_error();
 					return false;
@@ -159,6 +161,7 @@ if (isset($_GET["mssql"])) {
 
 			function query($query, $unbuffered = false) {
 				$result = mssql_query($query, $this->_link); //! $unbuffered
+				$this->error = "";
 				if (!$result) {
 					$this->error = mssql_get_last_message();
 					return false;
@@ -252,7 +255,7 @@ if (isset($_GET["mssql"])) {
 	}
 
 	function limit($query, $where, $limit, $offset = 0, $separator = " ") {
-		return (isset($limit) ? " TOP (" . ($limit + $offset) . ")" : "") . " $query$where"; // seek later
+		return ($limit !== null ? " TOP (" . ($limit + $offset) . ")" : "") . " $query$where"; // seek later
 	}
 
 	function limit1($query, $where) {
@@ -521,6 +524,9 @@ WHERE OBJECT_NAME(i.object_id) = " . q($table)
 	}
 	
 	function trigger($name) {
+		if ($name == "") {
+			return array();
+		}
 		$rows = get_rows("SELECT s.name [Trigger],
 CASE WHEN OBJECTPROPERTY(s.id, 'ExecIsInsertTrigger') = 1 THEN 'INSERT' WHEN OBJECTPROPERTY(s.id, 'ExecIsUpdateTrigger') = 1 THEN 'UPDATE' WHEN OBJECTPROPERTY(s.id, 'ExecIsDeleteTrigger') = 1 THEN 'DELETE' END [Event],
 CASE WHEN OBJECTPROPERTY(s.id, 'ExecIsInsteadOfTrigger') = 1 THEN 'INSTEAD OF' ELSE 'AFTER' END [Timing],
@@ -585,6 +591,13 @@ WHERE sys1.xtype = 'TR' AND sys2.name = " . q($table)
 		return array();
 	}
 
+	function convert_field($field) {
+	}
+	
+	function unconvert_field($field, $return) {
+		return $return;
+	}
+	
 	function support($feature) {
 		return ereg('^(scheme|trigger|view|drop_col)$', $feature); //! routine|
 	}
@@ -602,7 +615,7 @@ WHERE sys1.xtype = 'TR' AND sys2.name = " . q($table)
 		$structured_types[$key] = array_keys($val);
 	}
 	$unsigned = array();
-	$operators = array("=", "<", ">", "<=", ">=", "!=", "LIKE", "LIKE %%", "IN", "IS NULL", "NOT LIKE", "NOT IN", "IS NOT NULL", "");
+	$operators = array("=", "<", ">", "<=", ">=", "!=", "LIKE", "LIKE %%", "IN", "IS NULL", "NOT LIKE", "NOT IN", "IS NOT NULL");
 	$functions = array("len", "lower", "round", "upper");
 	$grouping = array("avg", "count", "count distinct", "max", "min", "sum");
 	$edit_functions = array(

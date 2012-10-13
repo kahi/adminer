@@ -138,7 +138,7 @@ $translations = array(
 	'Routine' => 'ரொட்டீன்',
 	'Grant' => 'அனும‌திய‌ளி',
 	'Revoke' => 'இர‌த்துச்செய்',
-	'Too big POST data. Reduce the data or increase the %s configuration directive.' => 'மிக‌ அதிக‌மான‌ POST  த‌க‌வ‌ல். த‌க‌வ‌லை குறைக்க‌வும் அல்ல‌து %s வ‌டிவ‌மைப்பை (configuration directive) மாற்ற‌வும்.',
+	'Too big POST data. Reduce the data or increase the %s configuration directive.' => 'மிக‌ அதிக‌மான‌ POST த‌க‌வ‌ல். த‌க‌வ‌லை குறைக்க‌வும் அல்ல‌து %s வ‌டிவ‌மைப்பை (configuration directive) மாற்ற‌வும்.',
 	'Logged as: %s' => 'ப‌ய‌னாளர்: %s',
 	'Move up' => 'மேலே ந‌க‌ர்த்து',
 	'Move down' => 'கீழே நக‌ர்த்து',
@@ -268,6 +268,5 @@ $translations = array(
 	'Copy' => 'நகல்',
 	'Permanent link' => 'நிரந்தர இணைப்பு',
 	'Edit all' => 'அனைத்தையும் தொகு',
-	'Resend POST data?' => 'POST data வை மீண்டும் அனுப்பவா?',
 	'HH:MM:SS' => 'HH:MM:SS',
 );

@@ -1,13 +1,14 @@
 <?php
 
 /** Edit all fields containing "_html" by HTML editor TinyMCE and display the HTML in select
+* @link http://www.adminer.org/plugins/#use
 * @uses TinyMCE, http://tinymce.moxiecode.com/
 * @author Jakub Vrana, http://www.vrana.cz/
 * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
 * @license http://www.gnu.org/licenses/gpl-2.0.html GNU General Public License, version 2 (one or other)
 */
 class AdminerTinymce {
-	/** @var string @access protected */
+	/** @access protected */
 	var $path;
 	
 	/**

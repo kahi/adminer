@@ -1,9 +1,8 @@
 <?php
-page_header(lang('Database schema'), "", array(), DB);
+page_header(lang('Database schema'), "", array(), DB . ($_GET["ns"] ? ".$_GET[ns]" : ""));
 
 $table_pos = array();
 $table_pos_js = array();
-// saved in one cookie because there is a limit of 20 cookies per domain
 $name = "adminer_schema";
 $SCHEMA = ($_GET["schema"] ? $_GET["schema"] : $_COOKIE[($_COOKIE["$name-" . DB] ? "$name-" . DB : $name)]); // $_COOKIE["adminer_schema"] was used before 3.2.0 //! ':' in table name
 preg_match_all('~([^:]+):([-0-9.]+)x([-0-9.]+)(_|$)~', $SCHEMA, $matches, PREG_SET_ORDER);
@@ -17,23 +16,23 @@ $base_left = -1;
 $schema = array(); // table => array("fields" => array(name => field), "pos" => array(top, left), "references" => array(table => array(left => array(source, target))))
 $referenced = array(); // target_table => array(table => array(left => target_column))
 $lefts = array(); // float => bool
-foreach (table_status() as $row) {
-	if (!isset($row["Engine"])) { // view
+foreach (table_status() as $table_status) {
+	if (!isset($table_status["Engine"])) { // view
 		continue;
 	}
 	$pos = 0;
-	$schema[$row["Name"]]["fields"] = array();
-	foreach (fields($row["Name"]) as $name => $field) {
+	$schema[$table_status["Name"]]["fields"] = array();
+	foreach (fields($table_status["Name"]) as $name => $field) {
 		$pos += 1.25;
 		$field["pos"] = $pos;
-		$schema[$row["Name"]]["fields"][$name] = $field;
+		$schema[$table_status["Name"]]["fields"][$name] = $field;
 	}
-	$schema[$row["Name"]]["pos"] = ($table_pos[$row["Name"]] ? $table_pos[$row["Name"]] : array($top, 0));
-	foreach ($adminer->foreignKeys($row["Name"]) as $val) {
+	$schema[$table_status["Name"]]["pos"] = ($table_pos[$table_status["Name"]] ? $table_pos[$table_status["Name"]] : array($top, 0));
+	foreach ($adminer->foreignKeys($table_status["Name"]) as $val) {
 		if (!$val["db"]) {
 			$left = $base_left;
-			if ($table_pos[$row["Name"]][1] || $table_pos[$val["table"]][1]) {
-				$left = min(floatval($table_pos[$row["Name"]][1]), floatval($table_pos[$val["table"]][1])) - 1;
+			if ($table_pos[$table_status["Name"]][1] || $table_pos[$val["table"]][1]) {
+				$left = min(floatval($table_pos[$table_status["Name"]][1]), floatval($table_pos[$val["table"]][1])) - 1;
 			} else {
 				$base_left -= .1;
 			}
@@ -41,19 +40,19 @@ foreach (table_status() as $row) {
 				// find free $left
 				$left -= .0001;
 			}
-			$schema[$row["Name"]]["references"][$val["table"]][(string) $left] = array($val["source"], $val["target"]);
-			$referenced[$val["table"]][$row["Name"]][(string) $left] = $val["target"];
+			$schema[$table_status["Name"]]["references"][$val["table"]][(string) $left] = array($val["source"], $val["target"]);
+			$referenced[$val["table"]][$table_status["Name"]][(string) $left] = $val["target"];
 			$lefts[(string) $left] = true;
 		}
 	}
-	$top = max($top, $schema[$row["Name"]]["pos"][0] + 2.5 + $pos);
+	$top = max($top, $schema[$table_status["Name"]]["pos"][0] + 2.5 + $pos);
 }
 
 ?>
-<div id="schema" style="height: <?php echo $top; ?>em;">
+<div id="schema" style="height: <?php echo $top; ?>em;" onselectstart="return false;">
 <script type="text/javascript">
-tablePos = {<?php echo implode(",", $table_pos_js) . "\n"; ?>};
-em = document.getElementById('schema').offsetHeight / <?php echo $top; ?>;
+var tablePos = {<?php echo implode(",", $table_pos_js) . "\n"; ?>};
+var em = document.getElementById('schema').offsetHeight / <?php echo $top; ?>;
 document.onmousemove = schemaMousemove;
 document.onmouseup = function (ev) {
 	schemaMouseup(ev, '<?php echo js_escape(DB); ?>');
@@ -62,17 +61,17 @@ document.onmouseup = function (ev) {
 <?php
 foreach ($schema as $name => $table) {
 	echo "<div class='table' style='top: " . $table["pos"][0] . "em; left: " . $table["pos"][1] . "em;' onmousedown='schemaMousedown(this, event);'>";
-	echo '<a href="' . h(ME) . 'table=' . urlencode($name) . '"><b>' . h($name) . "</b></a><br>\n";
+	echo '<a href="' . h(ME) . 'table=' . urlencode($name) . '"><b>' . h($name) . "</b></a>";
 	foreach ($table["fields"] as $field) {
 		$val = '<span' . type_class($field["type"]) . ' title="' . h($field["full_type"] . ($field["null"] ? " NULL" : '')) . '">' . h($field["field"]) . '</span>';
-		echo ($field["primary"] ? "<i>$val</i>" : $val) . "<br>\n";
+		echo "<br>" . ($field["primary"] ? "<i>$val</i>" : $val);
 	}
 	foreach ((array) $table["references"] as $target_name => $refs) {
 		foreach ($refs as $left => $ref) {
 			$left1 = $left - $table_pos[$name][1];
 			$i = 0;
 			foreach ($ref[0] as $source) {
-				echo "<div class='references' title='" . h($target_name) . "' id='refs$left-" . ($i++) . "' style='left: $left1" . "em; top: " . $table["fields"][$source]["pos"] . "em; padding-top: .5em;'><div style='border-top: 1px solid Gray; width: " . (-$left1) . "em;'></div></div>\n";
+				echo "\n<div class='references' title='" . h($target_name) . "' id='refs$left-" . ($i++) . "' style='left: $left1" . "em; top: " . $table["fields"][$source]["pos"] . "em; padding-top: .5em;'><div style='border-top: 1px solid Gray; width: " . (-$left1) . "em;'></div></div>";
 			}
 		}
 	}
@@ -81,11 +80,11 @@ foreach ($schema as $name => $table) {
 			$left1 = $left - $table_pos[$name][1];
 			$i = 0;
 			foreach ($columns as $target) {
-				echo "<div class='references' title='" . h($target_name) . "' id='refd$left-" . ($i++) . "' style='left: $left1" . "em; top: " . $table["fields"][$target]["pos"] . "em; height: 1.25em; background: url(../adminer/static/arrow.gif) no-repeat right center;'><div style='height: .5em; border-bottom: 1px solid Gray; width: " . (-$left1) . "em;'></div></div>\n";
+				echo "\n<div class='references' title='" . h($target_name) . "' id='refd$left-" . ($i++) . "' style='left: $left1" . "em; top: " . $table["fields"][$target]["pos"] . "em; height: 1.25em; background: url(../adminer/static/arrow.gif) no-repeat right center;'><div style='height: .5em; border-bottom: 1px solid Gray; width: " . (-$left1) . "em;'></div></div>";
 			}
 		}
 	}
-	echo "</div>\n";
+	echo "\n</div>\n";
 }
 foreach ($schema as $name => $table) {
 	foreach ((array) $table["references"] as $target_name => $refs) {

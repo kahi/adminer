@@ -1,26 +1,15 @@
+#!/usr/bin/env php
 <?php
 error_reporting(6135); // errors and warnings
 include dirname(__FILE__) . "/adminer/include/version.inc.php";
-include dirname(__FILE__) . "/externals/jsmin-php/jsmin.php";
-
-if (!class_exists("JSMin")) {
-	/** Simple JS minifier without full support for regex literals
-	* @link http://pastebin.com/2Jc2swSr
-	*/
-	class JSMin {
-		/*private static*/ function callback($match) {
-			$s = trim($match[0]);
-			return ($s === "" ? "\n" : ($s[0] === "/" && ($s[1] === "*" || $s[1] === "/") ? "" : $s));
-		}
-		
-		/*static*/ function minify($input) {
-			return preg_replace_callback('~//[^\n]*|/\*.*?\*/|/(?!\s)(?:\\\\.|[^/\\\\])*/|\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"|\s*[^0-9a-z_$\'"/\s]\s*|\s+~si', array('JSMin', 'callback'), $input);
-		}
-	}
-}
+include dirname(__FILE__) . "/externals/JsShrink/jsShrink.php";
 
 function add_apo_slashes($s) {
 	return addcslashes($s, "\\'");
+}
+
+function add_quo_slashes($s) {
+	return addcslashes($s, "\n\r\$\0\"\\");
 }
 
 function remove_lang($match) {
@@ -36,7 +25,7 @@ function remove_lang($match) {
 function lang_ids($match) {
 	global $lang_ids;
 	$lang_id = &$lang_ids[stripslashes($match[1])];
-	if (!isset($lang_id)) {
+	if ($lang_id === null) {
 		$lang_id = count($lang_ids) - 1;
 	}
 	return ($_SESSION["lang"] ? $match[0] : "lang($lang_id$match[2]");
@@ -60,12 +49,51 @@ function put_file($match) {
 function lang(\$translation, \$number) {
 	\$pos = $match2[2]\t\t: " . (preg_match("~\\\$LANG == '$_SESSION[lang]'.* \\? (.+)\n~U", $match2[1], $match3) ? $match3[1] : "1") . '
 	);
-	return sprintf($translation[$pos], $number);
+	$translation = str_replace("%d", "%s", $translation[$pos]);
+	$number = number_format($number, 0, ".", lang(\',\'));
+	return sprintf($translation, $number);
 }
 ';
 	} else {
 		echo "lang() not found\n";
 	}
+}
+
+function lzw_compress($string) {
+	// compression
+	$dictionary = array_flip(range("\0", "\xFF"));
+	$word = "";
+	$codes = array();
+	for ($i=0; $i <= strlen($string); $i++) {
+		$x = $string[$i];
+		if (strlen($x) && isset($dictionary[$word . $x])) {
+			$word .= $x;
+		} elseif ($i) {
+			$codes[] = $dictionary[$word];
+			$dictionary[$word . $x] = count($dictionary);
+			$word = $x;
+		}
+	}
+	// convert codes to binary string
+	$dictionary_count = 256;
+	$bits = 8; // ceil(log($dictionary_count, 2))
+	$return = "";
+	$rest = 0;
+	$rest_length = 0;
+	foreach ($codes as $code) {
+		$rest = ($rest << $bits) + $code;
+		$rest_length += $bits;
+		$dictionary_count++;
+		if ($dictionary_count >> $bits) {
+			$bits++;
+		}
+		while ($rest_length > 7) {
+			$rest_length -= 8;
+			$return .= chr($rest >> $rest_length);
+			$rest &= (1 << $rest_length) - 1;
+		}
+	}
+	return $return . ($rest_length ? chr($rest << (8 - $rest_length)) : "");
 }
 
 function put_file_lang($match) {
@@ -78,23 +106,34 @@ function put_file_lang($match) {
 		include dirname(__FILE__) . "/adminer/lang/$lang.inc.php"; // assign $translations
 		$translation_ids = array_flip($lang_ids); // default translation
 		foreach ($translations as $key => $val) {
-			if (isset($val)) {
-				$translation_ids[$lang_ids[$key]] = $val;
+			if ($val !== null) {
+				$translation_ids[$lang_ids[$key]] = implode("\t", (array) $val);
 			}
 		}
-		$return .= "\tcase \"$lang\": \$translations = array(";
-		foreach ($translation_ids as $val) {
-			$return .= (is_array($val) ? "array('" . implode("', '", array_map('add_apo_slashes', $val)) . "')" : "'" . add_apo_slashes($val) . "'") . ", ";
-		}
-		$return = substr($return, 0, -2) . "); break;\n";
+		$return .= '
+		case "' . $lang . '": $compressed = "' . add_quo_slashes(lzw_compress(implode("\n", $translation_ids))) . '"; break;';
 	}
-	return "switch (\$LANG) {\n$return}\n";
+	$translations_version = crc32($return);
+	return '$translations = &$_SESSION["translations"];
+if ($_SESSION["translations_version"] != ' . $translations_version . ') {
+	$translations = array();
+	$_SESSION["translations_version"] = ' . $translations_version . ';
+}
+if (!$translations) {
+	switch ($LANG) {' . $return . '
+	}
+	$translations = array();
+	foreach (explode("\n", lzw_decompress($compressed)) as $val) {
+		$translations[] = (strpos($val, "\t") ? explode("\t", $val) : $val);
+	}
+}
+';
 }
 
 function short_identifier($number, $chars) {
 	$return = '';
 	while ($number >= 0) {
-		$return .= $chars{$number % strlen($chars)};
+		$return .= $chars[$number % strlen($chars)];
 		$number = floor($number / strlen($chars)) - 1;
 	}
 	return $return;
@@ -108,6 +147,33 @@ function php_shrink($input) {
 	$shortening = true;
 	$tokens = token_get_all($input);
 	
+	// remove unnecessary { }
+	//! change also `while () { if () {;} }` to `while () if () ;` but be careful about `if () { if () { } } else { }
+	$shorten = 0;
+	$opening = -1;
+	foreach ($tokens as $i => $token) {
+		if (in_array($token[0], array(T_IF, T_ELSE, T_ELSEIF, T_WHILE, T_DO, T_FOR, T_FOREACH), true)) {
+			$shorten = ($token[0] == T_FOR ? 4 : 2);
+			$opening = -1;
+		} elseif (in_array($token[0], array(T_SWITCH, T_FUNCTION, T_CLASS, T_CLOSE_TAG), true)) {
+			$shorten = 0;
+		} elseif ($token === ';') {
+			$shorten--;
+		} elseif ($token === '{') {
+			if ($opening < 0) {
+				$opening = $i;
+			} elseif ($shorten > 1) {
+				$shorten = 0;
+			}
+		} elseif ($token === '}' && $opening >= 0 && $shorten == 1) {
+			unset($tokens[$opening]);
+			unset($tokens[$i]);
+			$shorten = 0;
+			$opening = -1;
+		}
+	}
+	$tokens = array_values($tokens);
+	
 	foreach ($tokens as $i => $token) {
 		if ($token[0] === T_VARIABLE && !isset($special_variables[$token[1]])) {
 			$short_variables[$token[1]]++;
@@ -115,11 +181,17 @@ function php_shrink($input) {
 	}
 	
 	arsort($short_variables);
+	$chars = implode(range('a', 'z')) . '_' . implode(range('A', 'Z'));
+	// preserve variable names between versions if possible
+	$short_variables2 = array_splice($short_variables, strlen($chars));
+	ksort($short_variables);
+	ksort($short_variables2);
+	$short_variables += $short_variables2;
 	foreach (array_keys($short_variables) as $number => $key) {
-		$short_variables[$key] = short_identifier($number, implode(range('a', 'z')) . '_' . implode(range('A', 'Z'))); // could use also numbers and \x7f-\xff
+		$short_variables[$key] = short_identifier($number, $chars); // could use also numbers and \x7f-\xff
 	}
 	
-	$set = array_flip(preg_split('//', '!"#$&\'()*+,-./:;<=>?@[\]^`{|}'));
+	$set = array_flip(preg_split('//', '!"#$%&\'()*+,-./:;<=>?@[\]^`{|}'));
 	$space = '';
 	$output = '';
 	$in_echo = false;
@@ -129,10 +201,10 @@ function php_shrink($input) {
 			$token = array(0, $token);
 		}
 		if ($tokens[$i+2][0] === T_CLOSE_TAG && $tokens[$i+3][0] === T_INLINE_HTML && $tokens[$i+4][0] === T_OPEN_TAG
-			&& strlen(addcslashes($tokens[$i+3][1], "'\\")) < strlen($tokens[$i+3][1]) + 3
+			&& strlen(add_apo_slashes($tokens[$i+3][1])) < strlen($tokens[$i+3][1]) + 3
 		) {
 			$tokens[$i+2] = array(T_ECHO, 'echo');
-			$tokens[$i+3] = array(T_CONSTANT_ENCAPSED_STRING, "'" . addcslashes($tokens[$i+3][1], "'\\") . "'");
+			$tokens[$i+3] = array(T_CONSTANT_ENCAPSED_STRING, "'" . add_apo_slashes($tokens[$i+3][1]) . "'");
 			$tokens[$i+4] = array(0, ';');
 		}
 		if ($token[0] == T_COMMENT || $token[0] == T_WHITESPACE || ($token[0] == T_DOC_COMMENT && $doc_comment)) {
@@ -176,12 +248,27 @@ function php_shrink($input) {
 }
 
 function minify_css($file) {
-	return preg_replace('~\\s*([:;{},])\\s*~', '\\1', preg_replace('~/\\*.*\\*/~sU', '', $file));
+	return lzw_compress(preg_replace('~\\s*([:;{},])\\s*~', '\\1', preg_replace('~/\\*.*\\*/~sU', '', $file)));
+}
+
+function minify_js($file) {
+	$file = str_replace("'../externals/jush/'", "location.protocol + '//www.adminer.org/static/'", $file);
+	if (function_exists('jsShrink')) {
+		$file = jsShrink($file);
+	}
+	return lzw_compress($file);
 }
 
 function compile_file($match) {
 	global $project;
-	return call_user_func($match[2], file_get_contents(dirname(__FILE__) . "/$project/$match[1]"));
+	$file = "";
+	foreach (explode(";", $match[1]) as $filename) {
+		$file .= file_get_contents(dirname(__FILE__) . "/$project/$filename");
+	}
+	if ($match[2]) {
+		$file = call_user_func($match[2], $file);
+	}
+	return '"' . add_quo_slashes($file) . '"';
 }
 
 $driver = "";
@@ -195,7 +282,7 @@ $_SESSION["lang"] = $_SERVER["argv"][1]; // Adminer functions read language from
 include dirname(__FILE__) . "/adminer/include/lang.inc.php";
 if (isset($_SESSION["lang"])) {
 	if (isset($_SERVER["argv"][2]) || !isset($langs[$_SESSION["lang"]])) {
-		echo "Usage: php compile.php [lang]\nPurpose: Compile adminer[-lang].php and editor[-lang].php.\n";
+		echo "Usage: php compile.php [driver] [lang]\nPurpose: Compile adminer[-driver][-lang].php and editor[-driver][-lang].php.\n";
 		exit(1);
 	}
 	include dirname(__FILE__) . "/adminer/lang/$_SESSION[lang].inc.php";
@@ -211,7 +298,7 @@ foreach (glob(dirname(__FILE__) . "/adminer/drivers/" . ($driver ? $driver : "*"
 		$file = file_get_contents($filename);
 		foreach ($functions as $val) {
 			if (!strpos($file, "$val(")) {
-				echo "Missing $val in $filename\n";
+				fprintf(STDERR, "Missing $val in $filename\n");
 			}
 		}
 	}
@@ -264,13 +351,10 @@ foreach (array("adminer", "editor") as $project) {
 		$file = str_replace('<?php echo $LANG; ?>', $_SESSION["lang"], $file);
 	}
 	$file = str_replace('<script type="text/javascript" src="static/editing.js"></script>' . "\n", "", $file);
-	$file = preg_replace_callback("~compile_file\\('([^']+)', '([^']+)'\\);~", 'compile_file', $file); // integrate static files
+	$file = preg_replace_callback("~compile_file\\('([^']+)'(?:, '([^']*)')?\\)~", 'compile_file', $file); // integrate static files
 	$replace = 'h(preg_replace("~\\\\\\\\?.*~", "", ME)) . "?file=\\1&amp;version=' . $VERSION;
-	$file = preg_replace("~'\\.\\./adminer/static/(loader\\.gif)~", "location.pathname+'?file=\\1&amp;version=$VERSION", $file);
-	$file = preg_replace('~\\.\\./adminer/static/(loader\\.gif)~', "'+location.pathname+'?file=\\1&amp;version=$VERSION", $file);
 	$file = preg_replace('~\\.\\./adminer/static/(default\\.css|functions\\.js|favicon\\.ico)~', '<?php echo ' . $replace . '"; ?>', $file);
 	$file = preg_replace('~\\.\\./adminer/static/([^\'"]*)~', '" . ' . $replace, $file);
-	$file = str_replace("'../externals/jush/'", "location.protocol + '//www.adminer.org/static/'", $file);
 	$file = preg_replace("~<\\?php\\s*\\?>\n?|\\?>\n?<\\?php~", '', $file);
 	$file = php_shrink($file);
 

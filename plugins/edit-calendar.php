@@ -1,6 +1,7 @@
 <?php
 
 /** Display jQuery UI Timepicker for each date and datetime field
+* @link http://www.adminer.org/plugins/#use
 * @uses jQuery-Timepicker, http://trentrichardson.com/examples/timepicker/
 * @uses jQuery UI: core, widget, mouse, slider, datepicker
 * @author Jakub Vrana, http://www.vrana.cz/
@@ -8,7 +9,7 @@
 * @license http://www.gnu.org/licenses/gpl-2.0.html GNU General Public License, version 2 (one or other)
 */
 class AdminerEditCalendar {
-	/** @var string @access protected */
+	/** @access protected */
 	var $prepend, $langPath;
 	
 	/**
@@ -36,11 +37,11 @@ class AdminerEditCalendar {
 		if (ereg("date|time", $field["type"])) {
 			$dateFormat = "changeYear: true, dateFormat: 'yy-mm-dd'"; //! yy-mm-dd regional
 			$timeFormat = "showSecond: true, timeFormat: 'hh:mm:ss'";
-			return "<input id='fields-" . h($field["field"]) . "' value='" . h($value) . "'" . (+$field["length"] ? " maxlength='" . (+$field["length"]) . "'" : "") . "$attrs><script type='text/javascript'>jQuery(function () { jQuery('#fields-" . js_escape($field["field"]) . "')."
+			return "<input id='fields-" . h($field["field"]) . "' value='" . h($value) . "'" . (+$field["length"] ? " maxlength='" . (+$field["length"]) . "'" : "") . "$attrs><script type='text/javascript'>jQuery('#fields-" . js_escape($field["field"]) . "')."
 				. ($field["type"] == "time" ? "timepicker({ $timeFormat })"
 				: (ereg("time", $field["type"]) ? "datetimepicker({ $dateFormat, $timeFormat })"
 				: "datepicker({ $dateFormat })"
-			)) . "; });</script>";
+			)) . ";</script>";
 		}
 	}
 	

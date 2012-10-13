@@ -2,10 +2,11 @@
 $TABLE = $_GET["view"];
 $dropped = false;
 if ($_POST && !$error) {
+	$name = trim($_POST["name"]);
 	$dropped = drop_create(
 		"DROP VIEW " . table($TABLE),
-		"CREATE VIEW " . table($_POST["name"]) . " AS\n$_POST[select]",
-		($_POST["drop"] ? substr(ME, 0, -1) : ME . "table=" . urlencode($_POST["name"])),
+		"CREATE VIEW " . table($name) . " AS\n$_POST[select]",
+		($_POST["drop"] ? substr(ME, 0, -1) : ME . "table=" . urlencode($name)),
 		lang('View has been dropped.'),
 		lang('View has been altered.'),
 		lang('View has been created.'),
@@ -15,10 +16,8 @@ if ($_POST && !$error) {
 
 page_header(($TABLE != "" ? lang('Alter view') : lang('Create view')), $error, array("table" => $TABLE), $TABLE);
 
-$row = array();
-if ($_POST) {
-	$row = $_POST;
-} elseif ($TABLE != "") {
+$row = $_POST;
+if (!$row && $TABLE != "") {
 	$row = view($TABLE);
 	$row["name"] = $TABLE;
 }

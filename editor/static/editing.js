@@ -1,9 +1,9 @@
 // Editor specific functions
 
 function bodyLoad(version) {
-	if (history.state !== undefined) {
-		onpopstate(history);
-	}
+}
+
+function selectFieldChange(form) {
 }
 
 function whisperClick(event, field) {
@@ -12,7 +12,6 @@ function whisperClick(event, field) {
 		field.value = el.firstChild.data;
 		field.previousSibling.value = decodeURIComponent(el.href.replace(/.*=/, ''));
 		field.nextSibling.style.display = 'none';
-		eventStop(event);
 		return false;
 	}
 }
