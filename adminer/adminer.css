@@ -699,6 +699,13 @@ form.select fieldset.length {
 	color: #fff;
 }
 
+/* "Load more data" ajax link */
+.pages a[onclick*="selectLoadMore"] {
+	float: left; margin: -7px 10px 0 0;
+	padding: 8px 5px;
+	color: #0073B7; text-decoration: underline;
+}
+
 /* @end */
 /* @end */
 
