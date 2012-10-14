@@ -42,17 +42,12 @@ body {
 }
 
 #container {
-	margin: 2%; position: relative;
-	height: 95%; padding-top: 70px; overflow: hidden;
+	position: relative;
+	height: 100%; padding-top: 70px; overflow: hidden;
 	-moz-box-sizing:    border-box;
 	-ms-box-sizing:     border-box;
 	-webkit-box-sizing: border-box;
 	box-sizing:         border-box;
-
-	border: 1px solid #6d6d6d; border-top-color: #8f8f8f;
-	-moz-border-radius:    6px 6px 0 0;
-	-webkit-border-radius: 6px 6px 0 0;
-	border-radius:         6px 6px 0 0;
 	-moz-box-shadow:    0 0 25px rgba(0,0,0, 0.20);
 	-webkit-box-shadow: 0 0 25px rgba(0,0,0, 0.20);
 	box-shadow:         0 0 25px rgba(0,0,0, 0.20);
@@ -314,7 +309,7 @@ form.db {
 #breadcrumb a.driver:after,
 #breadcrumb .server:after,
 form.db:after {
-	content:''; position: absolute; left: 10px; bottom: -10px;
+	content:''; position: absolute; left: 10px; bottom: -10px; z-index: 2;
 	width: 24px; height: 10px;
 	background: url(adminer-plus/images/blue-arr.gif);
 }
