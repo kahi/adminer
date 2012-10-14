@@ -40,7 +40,6 @@ body {
 	background-color: #c8c8c8;
 	font-family: "Lucida Grande", "Segoe UI", Tahoma, sans-serif; font-size: 12px;
 }
-input, select, textarea {font-size: inherit;}
 
 #container {
 	margin: 2%; position: relative;
@@ -389,7 +388,7 @@ form.db:after {
 			background-position: 10px -50px;
 			color: #fff;
 		}
-		
+
 		#tables li.active a.d {
 			background-position: 0 -50px;
 		}
@@ -645,6 +644,14 @@ form.select fieldset.length {
 		-webkit-border-radius: 0 6px 6px 0;
 		border-radius:         0 6px 6px 0;
 		background-color: #ddd;
+	}
+
+	form.select select {
+		margin-right: 4px;
+	}
+
+	form.select #fieldset-search input {
+		width: 135px;
 	}
 
 /* @end */
