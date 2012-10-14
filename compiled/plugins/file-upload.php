@@ -1,21 +1,25 @@
 <?php
+//! delete
 
 /** Edit fields ending with "_path" by <input type="file"> and link to the uploaded files from select
+* @link http://www.adminer.org/plugins/#use
 * @author Jakub Vrana, http://www.vrana.cz/
 * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
 * @license http://www.gnu.org/licenses/gpl-2.0.html GNU General Public License, version 2 (one or other)
 */
 class AdminerFileUpload {
-	/** @var string @access protected */
-	var $uploadPath, $displayPath;
+	/** @access protected */
+	var $uploadPath, $displayPath, $extensions;
 	
 	/**
 	* @param string prefix for uploading data (create writable subdirectory for each table containing uploadable fields)
 	* @param string prefix for displaying data, null stands for $uploadPath
+	* @param string regular expression with allowed file extensions
 	*/
-	function AdminerFileUpload($uploadPath = "../static/data/", $displayPath = null) {
+	function AdminerFileUpload($uploadPath = "../static/data/", $displayPath = null, $extensions = "[a-zA-Z0-9]+") {
 		$this->uploadPath = $uploadPath;
-		$this->displayPath = (isset($displayPath) ? $displayPath : $uploadPath);
+		$this->displayPath = ($displayPath !== null ? $displayPath : $uploadPath);
+		$this->extensions = $extensions;
 	}
 	
 	function editInput($table, $field, $attrs, $value) {
@@ -28,7 +32,7 @@ class AdminerFileUpload {
 		if (ereg('(.*)_path$', $field["field"], $regs)) {
 			$table = ($_GET["edit"] != "" ? $_GET["edit"] : $_GET["select"]);
 			$name = "fields-$field[field]";
-			if ($_FILES[$name]["error"] || !eregi('(\\.([a-z0-9]+))?$', $_FILES[$name]["name"], $regs2)) {
+			if ($_FILES[$name]["error"] || !ereg("(\\.($this->extensions))?\$", $_FILES[$name]["name"], $regs2)) {
 				return false;
 			}
 			//! unlink old

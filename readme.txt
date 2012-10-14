@@ -6,7 +6,7 @@ Screenshot: http://cl.ly/image/3R173Z0p0o20
 
 Minified version (and all its assets) are in `compiled` folder.
 
-This fork is based on Adminer 3.3.1. Hence various differences from the original branche, this look is not available as a "skin" (adminer.css).
+This fork is based on Adminer 3.6.1. Hence various differences from the original branche, this look is not available as a "skin" (adminer.css).
 
 More info [in czech]: http://kahi.cz/blog/adminer-s-makeupem
 

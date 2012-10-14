@@ -1,14 +1,15 @@
 <?php
 
 /** Dump to ZIP format
+* @link http://www.adminer.org/plugins/#use
 * @uses ZipArchive, tempnam("")
 * @author Jakub Vrana, http://www.vrana.cz/
 * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
 * @license http://www.gnu.org/licenses/gpl-2.0.html GNU General Public License, version 2 (one or other)
 */
 class AdminerDumpZip {
-	/** @var string @access protected */
-	var $filename;
+	/** @access protected */
+	var $filename, $data;
 	
 	function dumpOutput() {
 		if (!class_exists('ZipArchive')) {
@@ -18,13 +19,12 @@ class AdminerDumpZip {
 	}
 	
 	function _zip($string, $state) {
-		static $data = "";
-		$data .= $string;
+		$this->data .= $string;
 		if ($state & PHP_OUTPUT_HANDLER_END) {
 			$zip = new ZipArchive;
 			$zipFile = tempnam("", "zip");
 			$zip->open($zipFile, ZipArchive::OVERWRITE); // php://output is not supported
-			$zip->addFromString($this->filename, $data);
+			$zip->addFromString($this->filename, $this->data);
 			$zip->close();
 			$return = file_get_contents($zipFile);
 			unlink($zipFile);
@@ -37,8 +37,8 @@ class AdminerDumpZip {
 		$this->filename = "$identifier." . ($multi_table && ereg("[ct]sv", $_POST["format"]) ? "tar" : $_POST["format"]);
 		if ($_POST["output"] == "zip") {
 			header("Content-Type: application/zip");
+			ob_start(array($this, '_zip'));
 		}
-		ob_start(array($this, '_zip'));
 	}
 
 }

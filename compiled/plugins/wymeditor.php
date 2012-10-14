@@ -1,17 +1,15 @@
 <?php
 
 /** Edit all fields containing "_html" by HTML editor WYMeditor and display the HTML in select
+* @link http://www.adminer.org/plugins/#use
 * @uses WYMeditor, http://www.wymeditor.org/
 * @author Jakub Vrana, http://www.vrana.cz/
 * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
 * @license http://www.gnu.org/licenses/gpl-2.0.html GNU General Public License, version 2 (one or other)
 */
 class AdminerWymeditor {
-	/** @var array @access protected */
-	var $scripts;
-	
-	/** @var string @access protected */
-	var $options;
+	/** @access protected */
+	var $scripts, $options;
 	
 	/**
 	* @param array
@@ -58,9 +56,7 @@ class AdminerWymeditor {
 				$lang = ($lang == "zh" || $lang == "zh-tw" ? "zh_cn" : $lang);
 			}
 			return "<textarea$attrs id='fields-" . h($field["field"]) . "' rows='12' cols='50'>" . h($value) . "</textarea><script type='text/javascript'>
-jQuery(function () {
-	jQuery('textarea[name*=\"_html\"]').wymeditor({ updateSelector: '#form [type=\"submit\"]', lang: '$lang'" . ($this->options ? ", $this->options" : "") . " });
-});
+jQuery('#fields-" . js_escape($field["field"]) . "').wymeditor({ updateSelector: '#form [type=\"submit\"]', lang: '$lang'" . ($this->options ? ", $this->options" : "") . " });
 </script>";
 		}
 	}
