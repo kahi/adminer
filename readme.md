@@ -22,6 +22,7 @@ This fork is based on Adminer 3.6.1. Hence various differences from the original
 
 [More info about this Adminer fork [in czech]](http://kahi.cz/blog/adminer-s-makeupem)
 
+**How to create compiled version (in case I forgot)**: 0. clear `/compiled` 1. run `/compile.php` 2. copy `/adminer/adminer-plus`, `/adminer/my_adminer.php` and `/adminer/adminer.css` into `/compiled` 3. copy `/adminer-3.6.1.php` and `/plugins` to `/compiled/adminer-plus/` 4. rename `/compiled/my_adminer.php` to `index.php` and fix paths inside.
 
 [Original Adminer](https://github.com/vrana/adminer/)
 ------
